@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Mix Up</string>
+
+    <!-- Nav drawer -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">MixUp!</string>
+    <string name="nav_header_subtitle">v0.1</string>
+    <string name="nav_header_desc">Navigation header app logo</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_mix_up">MixUp!</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_more_apps">More by developer</string>
+    <string name="action_start_over">Start over</string>
+    <string name="action_share">Share</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="more_apps_page_header">Check out these apps by Gerard...</string>
+    <string name="mater_title">Mater</string>
+    <string name="mater_tagline">Your recipe and shopping mate</string>
+    <string name="mater_image_content_description">Mater app logo</string>
+</resources>
