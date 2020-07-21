@@ -7,19 +7,12 @@
         style="@style/BaseTouchImageViewParams"
         tools:src="@drawable/img_concentric_circles"
         android:layout_row="0"
-        android:layout_column="0"
-        android:layout_columnSpan="2" />
-
-    <com.ortiz.touchview.TouchImageView
-        style="@style/BaseTouchImageViewParams"
-        tools:src="@drawable/img_concentric_circles"
-        android:layout_row="1"
         android:layout_column="0" />
 
     <com.ortiz.touchview.TouchImageView
         style="@style/BaseTouchImageViewParams"
         tools:src="@drawable/img_concentric_circles"
         android:layout_row="1"
-        android:layout_column="1" />
+        android:layout_column="0" />
 
 </GridLayout>
