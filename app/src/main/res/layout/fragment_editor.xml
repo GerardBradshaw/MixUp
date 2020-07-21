@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.EditorFragment">
+    tools:context=".ui.editor.EditorFragment">
 
     <FrameLayout
         android:id="@+id/image_container"

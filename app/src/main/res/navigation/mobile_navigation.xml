@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/nav_mix_up"
-        android:name="com.gerardbradshaw.mixup.ui.home.EditorFragment"
+        android:name="com.gerardbradshaw.mixup.ui.editor.EditorFragment"
         android:label="@string/menu_mix_up"
         tools:layout="@layout/fragment_editor" />
 

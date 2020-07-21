@@ -1,4 +1,4 @@
-package com.gerardbradshaw.mixup.ui.home
+package com.gerardbradshaw.mixup.ui.editor
 
 import android.app.Activity.RESULT_OK
 import android.content.ContentResolver
