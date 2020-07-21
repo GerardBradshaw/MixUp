@@ -3,7 +3,7 @@ package com.gerardbradshaw.mixup.ui.home
 import android.app.Activity.RESULT_OK
 import android.content.ContentResolver
 import android.content.Intent
-import android.media.Image
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -12,14 +12,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.inflate
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.GridLayout
+import android.widget.ImageButton
 import androidx.core.view.setMargins
+import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 
@@ -30,8 +35,11 @@ class EditorFragment : Fragment() {
   private var selectedImageIndex: Int = 0
   private val LOG_TAG = EditorFragment::class.java.name
   private val imageUris = arrayOfNulls<Uri>(8)
+  private val frameResIdImgToLayout = HashMap<Int, Int>()
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                            savedInstanceState: Bundle?): View? {
+
     editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
     rootView = inflater.inflate(R.layout.fragment_editor, container, false)
     initUi()
@@ -39,10 +47,42 @@ class EditorFragment : Fragment() {
   }
 
   private fun initUi() {
+    populateFrameMap()
     initImageContainer()
+    initRecycler()
     rootView.findViewById<ImageButton>(R.id.button_frame).setOnClickListener { openFrameOptions() }
     rootView.findViewById<ImageButton>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
     rootView.findViewById<ImageButton>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
+  }
+
+  private fun initRecycler() {
+    val adapter = ToolListAdapter(rootView.context, frameResIdImgToLayout)
+
+    adapter.setButtonClickedListener(object : ToolListAdapter.ToolButtonClickedListener {
+      override fun onToolButtonClicked(resId: Int?) {
+        if (resId == null) {
+          Log.d(LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
+          return
+        }
+
+        try {
+          rootView.context.resources.getResourceName(resId)
+          val imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
+          imageContainer.removeAllViews()
+          inflate(rootView.context, resId, imageContainer)
+          initImageContainer()
+
+        } catch (e: Resources.NotFoundException) {
+          Log.d(LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
+        }
+      }
+    })
+
+    rootView.findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+      it.adapter = adapter
+      it.layoutManager =
+        LinearLayoutManager(rootView.context, LinearLayoutManager.HORIZONTAL, false)
+    }
   }
 
   private fun initImageContainer() {
@@ -62,9 +102,9 @@ class EditorFragment : Fragment() {
       else {
         val uri = Uri.parse(
           ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
-              + resources.getResourcePackageName(R.drawable.img_click_to_add_photo) + '/'
-              + resources.getResourceTypeName(R.drawable.img_click_to_add_photo) + '/'
-              + resources.getResourceEntryName(R.drawable.img_click_to_add_photo))
+              + resources.getResourcePackageName(R.drawable.ic_tap_to_add_photo) + '/'
+              + resources.getResourceTypeName(R.drawable.ic_tap_to_add_photo) + '/'
+              + resources.getResourceEntryName(R.drawable.ic_tap_to_add_photo))
         insertImageAtIndex(uri, i)
       }
     }
@@ -87,17 +127,30 @@ class EditorFragment : Fragment() {
     // TODO bring up menu
   }
 
+  private fun populateFrameMap() {
+    frameResIdImgToLayout[R.drawable.frame_2img_0] = R.layout.frame_2img_0
+    frameResIdImgToLayout[R.drawable.frame_2img_1] = R.layout.frame_2img_1
+    frameResIdImgToLayout[R.drawable.frame_3img_0] = R.layout.frame_3img_0
+    frameResIdImgToLayout[R.drawable.frame_3img_1] = R.layout.frame_3img_1
+    frameResIdImgToLayout[R.drawable.frame_3img_2] = R.layout.frame_3img_2
+    frameResIdImgToLayout[R.drawable.frame_3img_3] = R.layout.frame_3img_3
+    frameResIdImgToLayout[R.drawable.frame_3img_4] = R.layout.frame_3img_4
+    frameResIdImgToLayout[R.drawable.frane_3img_5] = R.layout.frame_3img_5
+    frameResIdImgToLayout[R.drawable.frame_4img_0] = R.layout.frame_4img_0
+    frameResIdImgToLayout[R.drawable.frame_4img_1] = R.layout.frame_4img_1
+    frameResIdImgToLayout[R.drawable.frame_4img_2] = R.layout.frame_4img_2
+    frameResIdImgToLayout[R.drawable.frame_4img_3] = R.layout.frame_4img_3
+    frameResIdImgToLayout[R.drawable.frame_4img_4] = R.layout.frame_4img_4
+  }
+
   private fun openAspectOptions() {
     // TODO("Not implemented")
   }
 
   private fun toggleBorder() {
-    val containerParams = imageGrid.layoutParams as ViewGroup.MarginLayoutParams
-    val hasBorder = containerParams.marginStart <= 0
+    val hasBorder = imageGrid.paddingStart <= 0
     val borderWidth = dpToPx(if (hasBorder) 6 else 0)
-
-    containerParams.setMargins(borderWidth)
-    imageGrid.layoutParams = containerParams
+    imageGrid.setPadding(borderWidth)
 
     for (i in 0 until imageGrid.childCount) {
       val imageParams = imageGrid.getChildAt(i).layoutParams as ViewGroup.MarginLayoutParams
