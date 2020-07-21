@@ -1,0 +1,17 @@
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="700"
+    android:viewportHeight="700"
+    android:tint="?attr/colorControlNormal">
+
+  <path
+      android:pathData="M73,211l0,123 277,-0 277,-0 0,-123 0,-123 -277,-0 -277,-0 0,123z"
+      android:fillColor="#000000"
+      android:strokeColor="#00000000"/>
+  <path
+      android:pathData="M73,489l0,123 277,-0 277,-0 0,-123 0,-123 -277,-0 -277,-0 0,123z"
+      android:fillColor="#000000"
+      android:strokeColor="#00000000"/>
+</vector>
