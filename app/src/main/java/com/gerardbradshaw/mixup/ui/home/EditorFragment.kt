@@ -3,6 +3,7 @@ package com.gerardbradshaw.mixup.ui.home
 import android.app.Activity.RESULT_OK
 import android.content.ContentResolver
 import android.content.Intent
+import android.media.Image
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,10 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.inflate
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.GridLayout
-import android.widget.Toast
+import android.widget.*
 import androidx.core.view.setMargins
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -35,19 +33,16 @@ class EditorFragment : Fragment() {
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
     editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
-
     rootView = inflater.inflate(R.layout.fragment_editor, container, false)
-
     initUi()
-
     return rootView
   }
 
   private fun initUi() {
     initImageContainer()
-    rootView.findViewById<Button>(R.id.button_frame).setOnClickListener { openFrameOptions() }
-    rootView.findViewById<Button>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
-    rootView.findViewById<Button>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
+    rootView.findViewById<ImageButton>(R.id.button_frame).setOnClickListener { openFrameOptions() }
+    rootView.findViewById<ImageButton>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
+    rootView.findViewById<ImageButton>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
   }
 
   private fun initImageContainer() {
@@ -85,7 +80,7 @@ class EditorFragment : Fragment() {
     val imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
 
     imageContainer.removeAllViews()
-    inflate(rootView.context, R.layout.frame_4img_0, imageContainer)
+    inflate(rootView.context, R.layout.frame_4img_1, imageContainer)
 
     initImageContainer()
 
@@ -93,7 +88,6 @@ class EditorFragment : Fragment() {
   }
 
   private fun openAspectOptions() {
-    makeToast("Aspect not implemented")
     // TODO("Not implemented")
   }
 
@@ -125,10 +119,6 @@ class EditorFragment : Fragment() {
     val intent = Intent(Intent.ACTION_PICK)
     intent.type = "image/*"
     startActivityForResult(intent, REQUEST_IMAGE_IMPORT_CODE)
-  }
-
-  private fun makeToast(message: String) {
-    Toast.makeText(rootView.context, message, Toast.LENGTH_SHORT).show()
   }
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
