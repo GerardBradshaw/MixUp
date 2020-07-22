@@ -23,17 +23,20 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
+import java.util.LinkedHashMap
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 private const val DEBUG_LOG_TAG = "EditorFragment"
 
 class EditorFragment : Fragment() {
   private lateinit var editorViewModel: EditorViewModel
-  private lateinit var frameIconIdToLayoutId: HashMap<Int, Int>
-  private lateinit var ratioStringToValue: HashMap<String, Float>
+  private lateinit var frameIconIdToLayoutId: LinkedHashMap<Int, Int>
+  private lateinit var ratioStringToValue: LinkedHashMap<String, Float>
   private lateinit var rootView: View
   private lateinit var imageContainer: GridLayout
   private lateinit var imageUris: Array<Uri?>
+  private var canvasHeight = 0f
+  private var canvasWidth = 0f
   private var selectedImagePosition: Int = 0
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -51,19 +54,25 @@ class EditorFragment : Fragment() {
     frameIconIdToLayoutId = editorViewModel.getFrameIconIdToLayoutMap()
     ratioStringToValue = editorViewModel.getRatioStringToValueMap()
     imageUris = editorViewModel.getImageUris()
+
+    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
+    imageCard.post {
+      canvasHeight = imageCard.height.toFloat()
+      canvasWidth = imageCard.width.toFloat()
+    }
   }
 
   private fun initUi() {
     initFrame()
     initToolButtons()
-    initToolOptionsRecycler()
+    initRecyclerWithFrames()
   }
 
   private fun initFrame() {
     imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
       .getChildAt(0) as GridLayout
 
-    initAspectRatioOfFrame()
+    setAspectRatioOfFrame()
     setPhotosInFrame()
     setClickListenersForPhotosInFrame()
   }
@@ -74,7 +83,7 @@ class EditorFragment : Fragment() {
     rootView.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
   }
 
-  private fun initToolOptionsRecycler() {
+  private fun initRecyclerWithFrames() {
     val adapter = FrameListAdapter(rootView.context, frameIconIdToLayoutId)
 
     adapter.setButtonClickedListener(object : FrameListAdapter.ToolButtonClickedListener {
@@ -104,25 +113,39 @@ class EditorFragment : Fragment() {
     }
   }
 
-  private fun initAspectRatioOfFrame() {
-    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
-    imageCard.post {
-      val maxImageHeight = imageCard.height.toFloat()
-      val maxImageWidth = imageCard.width.toFloat()
+  private fun initRecyclerWithRatios() {
+    val adapter = RatioListAdapter(rootView.context, ratioStringToValue)
 
+    adapter.setButtonClickedListener(object : RatioListAdapter.RatioButtonClickedListener {
+      override fun onRatioButtonClicked(ratio: Float?) {
+        if (ratio == null) Log.d(DEBUG_LOG_TAG, "Ratio was null!")
+        else setAspectRatioOfFrame(ratio)
+      }
+    })
+
+    rootView.findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+      it.adapter = adapter
+      it.layoutManager =
+        LinearLayoutManager(rootView.context, LinearLayoutManager.HORIZONTAL, false)
+    }
+  }
+
+  private fun setAspectRatioOfFrame(ratio: Float = 4f / 3f) {
+    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
+
+    imageCard.post {
       var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
       var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
 
-      val ratio = 3f / 4f
-      val shouldAdjustHeight = maxImageHeight > maxImageWidth / ratio
+      val shouldAdjustHeight = canvasHeight > canvasWidth / ratio
 
       if (shouldAdjustHeight) {
-        val newHeight = maxImageWidth / ratio
-        yMargin += (maxImageHeight - newHeight) / 2f
+        val newHeight = canvasWidth / ratio
+        yMargin += (canvasHeight - newHeight) / 2f
 
       } else {
-        val newWidth = maxImageHeight * ratio
-        xMargin += (maxImageWidth - newWidth) / 2f
+        val newWidth = canvasHeight * ratio
+        xMargin += (canvasWidth - newWidth) / 2f
       }
       updateMarginsOfView(
         imageCard, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
@@ -152,11 +175,11 @@ class EditorFragment : Fragment() {
   }
 
   private fun openFrameOptions() {
-    initToolOptionsRecycler()
+    initRecyclerWithFrames()
   }
 
   private fun openAspectOptions() {
-    // TODO("Not implemented")
+    initRecyclerWithRatios()
   }
 
   private fun toggleBorder() {

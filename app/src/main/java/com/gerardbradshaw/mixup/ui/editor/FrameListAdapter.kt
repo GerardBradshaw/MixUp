@@ -7,25 +7,26 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.gerardbradshaw.mixup.R
+import java.util.LinkedHashMap
 
-class FrameListAdapter(context: Context, private val frames: HashMap<Int, Int>) :
-  RecyclerView.Adapter<FrameListAdapter.ToolViewHolder>() {
+class FrameListAdapter(context: Context, frames: LinkedHashMap<Int, Int>) :
+  RecyclerView.Adapter<FrameListAdapter.FrameViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
   private val imageResIds = frames.keys.toList()
   private val layoutResIds = frames.values.toList()
   var listener: ToolButtonClickedListener? = null
 
-  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToolViewHolder {
-    val itemView = inflater.inflate(R.layout.list_item_tool_options, parent, false)
-    return ToolViewHolder(itemView, this)
+  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FrameViewHolder {
+    val itemView = inflater.inflate(R.layout.list_item_frame, parent, false)
+    return FrameViewHolder(itemView)
   }
 
   override fun getItemCount(): Int {
     return imageResIds.size
   }
 
-  override fun onBindViewHolder(holder: ToolViewHolder, position: Int) {
+  override fun onBindViewHolder(holder: FrameViewHolder, position: Int) {
     val imageResId = imageResIds[position]
     holder.image.setImageResource(imageResId)
 
@@ -35,9 +36,7 @@ class FrameListAdapter(context: Context, private val frames: HashMap<Int, Int>) 
     }
   }
 
-  class ToolViewHolder(itemView: View, private var adapter: FrameListAdapter) :
-    RecyclerView.ViewHolder(itemView) {
-
+  class FrameViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     val image: ImageView = itemView.findViewById(R.id.list_item_button)
   }
 
