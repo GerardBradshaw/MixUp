@@ -20,4 +20,7 @@
     <string name="mater_tagline">Your recipe and shopping mate</string>
     <string name="mater_image_content_description">Mater app logo</string>
     <string name="content_description_frame">Possible frame layout</string>
+    <string name="frame">Frame</string>
+    <string name="aspect">Aspect</string>
+    <string name="border">Border</string>
 </resources>

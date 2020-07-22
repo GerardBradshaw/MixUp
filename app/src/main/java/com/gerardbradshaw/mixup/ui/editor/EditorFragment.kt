@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageButton
+import androidx.cardview.widget.CardView
 import androidx.core.view.setMargins
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
@@ -50,9 +51,9 @@ class EditorFragment : Fragment() {
     populateFrameMap()
     initImageContainer()
     initRecycler()
-    rootView.findViewById<ImageButton>(R.id.button_frame).setOnClickListener { openFrameOptions() }
-    rootView.findViewById<ImageButton>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
-    rootView.findViewById<ImageButton>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
+    rootView.findViewById<CardView>(R.id.button_frame).setOnClickListener { openFrameOptions() }
+    rootView.findViewById<CardView>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
+    rootView.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
   }
 
   private fun initRecycler() {
