@@ -8,8 +8,8 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.gerardbradshaw.mixup.R
 
-class ToolListAdapter(context: Context, private val frames: HashMap<Int, Int>) :
-  RecyclerView.Adapter<ToolListAdapter.ToolViewHolder>() {
+class FrameListAdapter(context: Context, private val frames: HashMap<Int, Int>) :
+  RecyclerView.Adapter<FrameListAdapter.ToolViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
   private val imageResIds = frames.keys.toList()
@@ -35,7 +35,7 @@ class ToolListAdapter(context: Context, private val frames: HashMap<Int, Int>) :
     }
   }
 
-  class ToolViewHolder(itemView: View, private var adapter: ToolListAdapter) :
+  class ToolViewHolder(itemView: View, private var adapter: FrameListAdapter) :
     RecyclerView.ViewHolder(itemView) {
 
     val image: ImageView = itemView.findViewById(R.id.list_item_button)
