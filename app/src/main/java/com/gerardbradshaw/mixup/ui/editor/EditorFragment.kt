@@ -14,9 +14,7 @@ import android.view.View.inflate
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.GridLayout
-import android.widget.ImageButton
 import androidx.cardview.widget.CardView
-import androidx.core.view.setMargins
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -28,19 +26,20 @@ import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
+private const val DEBUG_LOG_TAG = "EditorFragment"
 
 class EditorFragment : Fragment() {
   private lateinit var editorViewModel: EditorViewModel
   private lateinit var rootView: View
-  private lateinit var imageGrid: GridLayout
+  private lateinit var imageContainer: GridLayout
   private var selectedImageIndex: Int = 0
-  private val LOG_TAG = EditorFragment::class.java.name
   private val imageUris = arrayOfNulls<Uri>(8)
   private val frameResIdImgToLayout = HashMap<Int, Int>()
+  private var maxImageWidth = 0f
+  private var maxImageHeight = 0f
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View? {
-
     editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
     rootView = inflater.inflate(R.layout.fragment_editor, container, false)
     initUi()
@@ -48,12 +47,38 @@ class EditorFragment : Fragment() {
   }
 
   private fun initUi() {
-    populateFrameMap()
+    initFrameMap()
     initImageContainer()
+    initAspectRatioOfFrame()
     initRecycler()
     rootView.findViewById<CardView>(R.id.button_frame).setOnClickListener { openFrameOptions() }
     rootView.findViewById<CardView>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
     rootView.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
+  }
+
+  private fun initAspectRatioOfFrame() {
+    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
+    imageCard.post {
+      maxImageHeight = imageCard.height.toFloat()
+      maxImageWidth = imageCard.width.toFloat()
+
+      var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
+      var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
+
+      val ratio = 3f / 4f
+      val shouldAdjustHeight = maxImageHeight > maxImageWidth / ratio
+
+      if (shouldAdjustHeight) {
+        val newHeight = maxImageWidth / ratio
+        yMargin += (maxImageHeight - newHeight) / 2f
+
+      } else {
+        val newWidth = maxImageHeight * ratio
+        xMargin += (maxImageWidth - newWidth) / 2f
+      }
+      updateMarginsOfView(
+        imageCard, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
+    }
   }
 
   private fun initRecycler() {
@@ -62,7 +87,7 @@ class EditorFragment : Fragment() {
     adapter.setButtonClickedListener(object : ToolListAdapter.ToolButtonClickedListener {
       override fun onToolButtonClicked(resId: Int?) {
         if (resId == null) {
-          Log.d(LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
+          Log.d(DEBUG_LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
           return
         }
 
@@ -74,7 +99,7 @@ class EditorFragment : Fragment() {
           initImageContainer()
 
         } catch (e: Resources.NotFoundException) {
-          Log.d(LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
+          Log.d(DEBUG_LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
         }
       }
     })
@@ -87,7 +112,7 @@ class EditorFragment : Fragment() {
   }
 
   private fun initImageContainer() {
-    imageGrid = rootView
+    imageContainer = rootView
       .findViewById<FrameLayout>(R.id.image_container)
       .getChildAt(0) as GridLayout
 
@@ -96,7 +121,7 @@ class EditorFragment : Fragment() {
   }
 
   private fun initFrameWithSavedImages() {
-    for (i in 0 until imageGrid.childCount) {
+    for (i in 0 until imageContainer.childCount) {
       if (imageUris[i] != null) {
         insertImageAtIndex(imageUris[i]!!, i)
       }
@@ -112,8 +137,8 @@ class EditorFragment : Fragment() {
   }
 
   private fun initImageClickListeners() {
-    for (i in 0 until imageGrid.childCount) {
-      imageGrid.getChildAt(i).setOnClickListener { addImages(i) }
+    for (i in 0 until imageContainer.childCount) {
+      imageContainer.getChildAt(i).setOnClickListener { addImages(i) }
     }
   }
 
@@ -128,7 +153,7 @@ class EditorFragment : Fragment() {
     // TODO bring up menu
   }
 
-  private fun populateFrameMap() {
+  private fun initFrameMap() {
     frameResIdImgToLayout[R.drawable.frame_2img_0] = R.layout.frame_2img_0
     frameResIdImgToLayout[R.drawable.frame_2img_1] = R.layout.frame_2img_1
     frameResIdImgToLayout[R.drawable.frame_3img_0] = R.layout.frame_3img_0
@@ -149,15 +174,20 @@ class EditorFragment : Fragment() {
   }
 
   private fun toggleBorder() {
-    val hasBorder = imageGrid.paddingStart <= 0
-    val borderWidth = dpToPx(if (hasBorder) 6 else 0)
-    imageGrid.setPadding(borderWidth)
+    val hasBorder = imageContainer.paddingStart <= 0
+    val thickness = if (hasBorder) resources.getDimensionPixelSize(R.dimen.border_thickness) else 0
+    imageContainer.setPadding(thickness)
 
-    for (i in 0 until imageGrid.childCount) {
-      val imageParams = imageGrid.getChildAt(i).layoutParams as ViewGroup.MarginLayoutParams
-      imageParams.setMargins(borderWidth)
-      imageGrid.getChildAt(i).layoutParams = imageParams
+    for (i in 0 until imageContainer.childCount) {
+      updateMarginsOfView(imageContainer.getChildAt(i), thickness, thickness, thickness, thickness)
     }
+  }
+
+  private fun updateMarginsOfView(view: View, leftMargin: Int, topMargin: Int,
+                                  rightMargin: Int, bottomMargin: Int) {
+    val params = view.layoutParams as ViewGroup.MarginLayoutParams
+    params.setMargins(leftMargin, topMargin, rightMargin, bottomMargin)
+    view.layoutParams = params
   }
 
   private fun dpToPx(dp: Int): Int {
@@ -185,19 +215,19 @@ class EditorFragment : Fragment() {
   private fun onImageSelected(data: Intent) {
     val uri = data.data!!
 
-    if (imageGrid.childCount > selectedImageIndex) {
+    if (imageContainer.childCount > selectedImageIndex) {
       insertImageAtIndex(uri, selectedImageIndex)
 
       if (selectedImageIndex < imageUris.size) imageUris[selectedImageIndex] = uri
-      else Log.d(LOG_TAG, "Cannot save uri. Index out of bounds")
+      else Log.d(DEBUG_LOG_TAG, "Cannot save uri. Index out of bounds")
 
       selectedImageIndex = 0
     }
-    else Log.d(LOG_TAG, "Selected TouchImageView no longer exists")
+    else Log.d(DEBUG_LOG_TAG, "Selected TouchImageView no longer exists")
   }
 
   private fun insertImageAtIndex(uri: Uri, index: Int) {
-    val touchImageView = imageGrid.getChildAt(index) as TouchImageView
+    val touchImageView = imageContainer.getChildAt(index) as TouchImageView
     Glide
       .with(this)
       .load(uri)

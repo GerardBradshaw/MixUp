@@ -8,25 +8,33 @@
     android:layout_height="match_parent"
     tools:context=".ui.editor.EditorFragment">
 
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_margin="8dp"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_height="0dp">
 
-        <FrameLayout
-            android:id="@+id/image_container"
+        <androidx.cardview.widget.CardView
+            android:layout_gravity="center"
+            android:id="@+id/image_card_view"
             android:layout_width="match_parent"
+            android:layout_margin="@dimen/image_init_margin"
             android:layout_height="match_parent">
 
-            <include
-                layout="@layout/frame_3img_0"
+            <FrameLayout
+                android:id="@+id/image_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent">
 
-        </FrameLayout>
+                <include
+                    layout="@layout/frame_3img_0"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
 
-    </androidx.cardview.widget.CardView>
+            </FrameLayout>
+
+        </androidx.cardview.widget.CardView>
+    </FrameLayout>
+
 
 
     <androidx.recyclerview.widget.RecyclerView

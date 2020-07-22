@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:clickable="true"
     android:focusable="true"
-    android:layout_margin="8dp"
     android:foreground="?selectableItemBackground"
+    app:cardCornerRadius="0dp"
     android:layout_height="wrap_content">
 
     <ImageView
@@ -14,6 +14,6 @@
         android:contentDescription="@string/content_description_frame"
         android:layout_width="52dp"
         android:layout_height="52dp"
-        android:padding="2dp" />
+        android:padding="4dp" />
 
 </androidx.cardview.widget.CardView>
