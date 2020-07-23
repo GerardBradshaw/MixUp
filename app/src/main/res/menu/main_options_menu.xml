@@ -14,6 +14,13 @@
             android:icon="@drawable/ic_menu_share" />
 
         <item
+            android:id="@+id/action_save"
+            android:orderInCategory="120"
+            android:title="@string/action_save_to_gallery"
+            app:showAsAction="ifRoom"
+            android:icon="@drawable/ic_menu_save" />
+
+        <item
             android:id="@+id/action_reset"
             android:orderInCategory="150"
             android:title="@string/action_start_over"

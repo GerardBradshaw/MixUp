@@ -23,4 +23,21 @@
 
     <include layout="@layout/content_main" />
 
+    <FrameLayout
+        android:id="@+id/progress_bar_frame"
+        android:visibility="gone"
+        android:background="@color/cardview_shadow_start_color"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:minHeight="40dp"
+            android:minWidth="40dp"
+            android:indeterminateTint="@android:color/white"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
+
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

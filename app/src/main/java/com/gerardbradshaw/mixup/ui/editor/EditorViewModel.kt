@@ -1,5 +1,6 @@
 package com.gerardbradshaw.mixup.ui.editor
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -33,6 +34,10 @@ class EditorViewModel : ViewModel() {
   fun addImageUri(uri: Uri, position: Int) {
     if (position >= imageUris.size) Log.d(LOG_TAG, "Cannot save URI. Invalid position.")
     else imageUris[position] = uri
+  }
+
+  fun saveImageToInternalStorage(bitmap: Bitmap) {
+
   }
 
   private fun initFrameIconIdToLayoutIdMap() {

@@ -23,4 +23,5 @@
     <string name="frame">Frame</string>
     <string name="aspect">Aspect</string>
     <string name="border">Border</string>
+    <string name="action_save_to_gallery">Save to gallery</string>
 </resources>

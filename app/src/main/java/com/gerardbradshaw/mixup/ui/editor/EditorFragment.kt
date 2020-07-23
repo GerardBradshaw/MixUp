@@ -27,6 +27,7 @@ import java.util.LinkedHashMap
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 private const val DEBUG_LOG_TAG = "EditorFragment"
+private const val RATIO = "ratio"
 
 class EditorFragment : Fragment() {
   private lateinit var editorViewModel: EditorViewModel
@@ -37,6 +38,7 @@ class EditorFragment : Fragment() {
   private lateinit var imageUris: Array<Uri?>
   private var canvasHeight = 0f
   private var canvasWidth = 0f
+  private var ratio = 1f
   private var selectedImagePosition: Int = 0
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -44,10 +46,18 @@ class EditorFragment : Fragment() {
     editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
     rootView = inflater.inflate(R.layout.fragment_editor, container, false)
 
+    if (savedInstanceState != null) {
+      if (savedInstanceState.containsKey(RATIO)) ratio = savedInstanceState.getFloat(RATIO)
+    }
+
     initData()
     initUi()
-
     return rootView
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    outState.putFloat(RATIO, ratio)
+    super.onSaveInstanceState(outState)
   }
 
   private fun initData() {
@@ -72,7 +82,7 @@ class EditorFragment : Fragment() {
     imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
       .getChildAt(0) as GridLayout
 
-    setAspectRatioOfFrame()
+    updateAspectRatioOfFrame(ratio)
     setPhotosInFrame()
     setClickListenersForPhotosInFrame()
   }
@@ -119,7 +129,7 @@ class EditorFragment : Fragment() {
     adapter.setButtonClickedListener(object : RatioListAdapter.RatioButtonClickedListener {
       override fun onRatioButtonClicked(ratio: Float?) {
         if (ratio == null) Log.d(DEBUG_LOG_TAG, "Ratio was null!")
-        else setAspectRatioOfFrame(ratio)
+        else updateAspectRatioOfFrame(ratio)
       }
     })
 
@@ -130,7 +140,8 @@ class EditorFragment : Fragment() {
     }
   }
 
-  private fun setAspectRatioOfFrame(ratio: Float = 4f / 3f) {
+  private fun updateAspectRatioOfFrame(ratio: Float) {
+    this.ratio = ratio
     val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
 
     imageCard.post {

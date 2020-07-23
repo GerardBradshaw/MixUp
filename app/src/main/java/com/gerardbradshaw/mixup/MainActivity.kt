@@ -2,9 +2,11 @@ package com.gerardbradshaw.mixup
 
 import android.Manifest
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -13,9 +15,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.FileProvider
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -24,13 +28,22 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.*
+import java.text.SimpleDateFormat
+import java.util.*
+
+private const val LOG_TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedListener {
 
   private lateinit var appBarConfiguration: AppBarConfiguration
   private var menu: Menu? = null
-  private val LOG_TAG = MainActivity::class.java.name
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -68,35 +81,128 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     when (item.itemId) {
-      R.id.action_share -> {
-        shareImage()
-      }
-      R.id.action_reset -> {
-        showToast("reset not implemented")
-      }
-      R.id.action_settings -> {
-        showToast("settings not implemented")
-      }
+      R.id.action_share -> shareImage()
+      R.id.action_save -> saveImageToGallery()
+      R.id.action_reset -> resetFrame()
+      R.id.action_settings -> openSettings()
     }
     return super.onOptionsItemSelected(item)
   }
 
   private fun shareImage() {
+    val spinnerContainer = findViewById<FrameLayout>(R.id.progress_bar_frame)
+    spinnerContainer.visibility = View.VISIBLE
+
     val imageViewGroup = findViewById<FrameLayout>(R.id.image_container)
 
-    if (imageViewGroup != null) {
-      val bitmap = getBitmapFromView(imageViewGroup)
-      if (bitmap != null) {
-        saveBitmapToSdCard(bitmap)
-        return
-      }
+    if (imageViewGroup != null) captureViewAndShare(imageViewGroup)
+    else {
+      Log.d(LOG_TAG, "Share failed. Unable to located image container.")
+      Toast.makeText(this, "An error occurred :(", Toast.LENGTH_LONG).show()
+      spinnerContainer.visibility = View.GONE
     }
-    Log.d(LOG_TAG, "Share failed. Unable to located image container.")
-    showToast("An error occurred")
   }
 
-  private fun saveBitmapToSdCard(bitmap: Bitmap) {
-    val filename = "MixUp"
+  private fun captureViewAndShare(view: View) {
+    CoroutineScope(Default).launch {
+      val bitmap = captureViewToBitmap(view)
+      saveBitmapToInternalStorageAndOpenShareSheet(bitmap)
+    }
+  }
+
+  private fun captureViewToBitmap(view: View): Bitmap {
+    val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    view.draw(canvas)
+    return bitmap
+  }
+
+  private suspend fun saveBitmapToInternalStorageAndOpenShareSheet(bitmap: Bitmap) {
+    withContext(IO) {
+      var uri: Uri? = null
+
+      try {
+        val file = File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "mixup.jpg")
+        val outStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
+        outStream.close()
+        uri = FileProvider.getUriForFile(
+          applicationContext,
+          applicationContext.packageName + ".provider",
+          file)
+
+      } catch (e: IOException) {
+        Log.d(LOG_TAG, "Error saving image to internal storage.")
+      }
+      startShareSheet(uri)
+    }
+  }
+
+  private suspend fun startShareSheet(uri: Uri?) {
+    withContext(Main) {
+      findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.GONE
+
+      if (uri == null) {
+        Log.d(LOG_TAG, "Share failed. Uri was null.")
+        Toast.makeText(applicationContext, "An error occurred :(", Toast.LENGTH_SHORT).show()
+
+      } else {
+        val shareIntent: Intent = Intent().apply {
+          action = Intent.ACTION_SEND
+          putExtra(Intent.EXTRA_STREAM, uri)
+          addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+          type = "image/jpeg"
+        }
+        startActivity(Intent.createChooser(shareIntent, "Share to..."))
+      }
+    }
+  }
+
+  private fun openShareSheet(uri: Uri?) {
+
+  }
+
+  private fun saveImageToGallery() {
+    val spinnerContainer = findViewById<FrameLayout>(R.id.progress_bar_frame)
+    spinnerContainer.visibility = View.VISIBLE
+
+    val imageViewGroup = findViewById<FrameLayout>(R.id.image_container)
+
+    if (imageViewGroup != null) captureViewAndSave(imageViewGroup)
+    else {
+      Log.d(LOG_TAG, "Save failed. Unable to located image container.")
+      Toast.makeText(this, "An error occurred :(", Toast.LENGTH_LONG).show()
+      spinnerContainer.visibility = View.GONE
+    }
+  }
+
+  private fun captureViewAndSave(view: View) {
+    CoroutineScope(IO).launch {
+      val bitmap = captureViewToBitmap(view)
+      saveBitmapToGallery(bitmap)
+      withContext(Main) {
+        findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.GONE
+      }
+    }
+  }
+
+  private fun resetFrame() {
+    val navController = findNavController(R.id.nav_host_fragment)
+    navController.navigate(R.id.nav_mix_up)
+  }
+
+  private fun openSettings() {
+    Toast.makeText(applicationContext, "settings not implemented", Toast.LENGTH_SHORT).show()
+  }
+
+  private fun getDateAndTimeString(): String {
+    val format = SimpleDateFormat("yyyyMMddHHmmss")
+    return format.format(Calendar.getInstance().time)
+  }
+
+  private fun saveBitmapToGallery(bitmap: Bitmap) {
+    val dateAndTime = getDateAndTimeString()
+    val filename = "mixup$dateAndTime"
 
     try {
       val outStream: OutputStream?
@@ -123,14 +229,11 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
         val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val imageFile = File(imagesDir, "$filename.jpeg")
         outStream = FileOutputStream(imageFile)
-        showToast("My API is 23-25")
       }
       if (outStream != null) {
-        showToast("saving...")
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream)
         outStream.flush()
         outStream.close()
-        showToast("saved successfully")
         return
       }
     }
@@ -138,18 +241,6 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
     catch (e: IOException) { e.printStackTrace() }
 
     Log.d(LOG_TAG, "Error saving image")
-    showToast("Error saving image")
-  }
-
-  private fun getBitmapFromView(view: View): Bitmap? {
-    val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
-    view.draw(canvas)
-    return bitmap
-  }
-
-  private fun showToast(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
   }
 
   override fun onSupportNavigateUp(): Boolean {
