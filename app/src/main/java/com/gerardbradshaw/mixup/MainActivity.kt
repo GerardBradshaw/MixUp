@@ -84,7 +84,6 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
       R.id.action_share -> shareImage()
       R.id.action_save -> saveImageToGallery()
       R.id.action_reset -> resetFrame()
-      R.id.action_settings -> openSettings()
     }
     return super.onOptionsItemSelected(item)
   }

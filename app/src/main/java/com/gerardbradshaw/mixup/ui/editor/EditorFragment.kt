@@ -13,6 +13,7 @@ import android.view.View.inflate
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.GridLayout
+import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
@@ -36,6 +37,7 @@ class EditorFragment : Fragment() {
   private lateinit var rootView: View
   private lateinit var imageContainer: GridLayout
   private lateinit var imageUris: Array<Uri?>
+  private lateinit var defaultImageUri: Uri
   private var canvasHeight = 0f
   private var canvasWidth = 0f
   private var ratio = 1f
@@ -64,6 +66,12 @@ class EditorFragment : Fragment() {
     frameIconIdToLayoutId = editorViewModel.getFrameIconIdToLayoutMap()
     ratioStringToValue = editorViewModel.getRatioStringToValueMap()
     imageUris = editorViewModel.getImageUris()
+
+    defaultImageUri = Uri.parse(
+      ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
+          + resources.getResourcePackageName(R.drawable.img_tap_to_add_photo) + '/'
+          + resources.getResourceTypeName(R.drawable.img_tap_to_add_photo) + '/'
+          + resources.getResourceEntryName(R.drawable.img_tap_to_add_photo))
 
     val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
     imageCard.post {
@@ -164,15 +172,8 @@ class EditorFragment : Fragment() {
   }
 
   private fun setPhotosInFrame() {
-    val defaultUri = Uri.parse(
-      ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
-          + resources.getResourcePackageName(R.drawable.ic_tap_to_add_photo) + '/'
-          + resources.getResourceTypeName(R.drawable.ic_tap_to_add_photo) + '/'
-          + resources.getResourceEntryName(R.drawable.ic_tap_to_add_photo))
-
     for (i in 0 until imageContainer.childCount) {
-      val uriForImageAtI = if (imageUris[i] != null) imageUris[i]!! else defaultUri
-      insertImageInFrame(uriForImageAtI, i)
+      insertImageInFrame(imageUris[i], i)
     }
   }
 
@@ -234,12 +235,23 @@ class EditorFragment : Fragment() {
     else Log.d(DEBUG_LOG_TAG, "Selected TouchImageView no longer exists")
   }
 
-  private fun insertImageInFrame(uri: Uri, position: Int) {
+  private fun insertImageInFrame(uri: Uri?, position: Int) {
     val touchImageView = imageContainer.getChildAt(position) as TouchImageView
-    Glide
-      .with(this)
-      .load(uri)
-      .transition(withCrossFade())
-      .into(touchImageView)
+
+    if (uri != null) {
+      touchImageView.scaleType = ImageView.ScaleType.CENTER
+      Glide
+        .with(this)
+        .load(uri)
+        .transition(withCrossFade())
+        .into(touchImageView)
+    } else {
+      touchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+      Glide
+        .with(this)
+        .load(defaultImageUri)
+        .transition(withCrossFade())
+        .into(touchImageView)
+    }
   }
 }

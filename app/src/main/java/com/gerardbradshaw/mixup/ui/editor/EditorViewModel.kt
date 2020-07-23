@@ -48,7 +48,7 @@ class EditorViewModel : ViewModel() {
     frameIconIdToLayoutIdMap[R.drawable.frame_3img_2] = R.layout.frame_3img_2
     frameIconIdToLayoutIdMap[R.drawable.frame_3img_3] = R.layout.frame_3img_3
     frameIconIdToLayoutIdMap[R.drawable.frame_3img_4] = R.layout.frame_3img_4
-    frameIconIdToLayoutIdMap[R.drawable.frane_3img_5] = R.layout.frame_3img_5
+    frameIconIdToLayoutIdMap[R.drawable.frame_3img_5] = R.layout.frame_3img_5
     frameIconIdToLayoutIdMap[R.drawable.frame_4img_0] = R.layout.frame_4img_0
     frameIconIdToLayoutIdMap[R.drawable.frame_4img_1] = R.layout.frame_4img_1
     frameIconIdToLayoutIdMap[R.drawable.frame_4img_2] = R.layout.frame_4img_2

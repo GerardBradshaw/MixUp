@@ -24,14 +24,8 @@
             android:id="@+id/action_reset"
             android:orderInCategory="150"
             android:title="@string/action_start_over"
-            app:showAsAction="never"
+            app:showAsAction="ifRoom"
             android:icon="@drawable/ic_menu_refresh" />
 
-        <item
-            android:id="@+id/action_settings"
-            android:orderInCategory="200"
-            android:title="@string/action_settings"
-            app:showAsAction="never"
-            android:icon="@drawable/ic_menu_settings"/>
     </group>
 </menu>
