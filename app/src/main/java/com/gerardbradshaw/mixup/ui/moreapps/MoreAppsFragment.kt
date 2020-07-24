@@ -73,6 +73,6 @@ class MoreAppsFragment : Fragment() {
   }
 
   interface OnFragmentCreatedListener {
-    fun onFragmentChanged(isOptionsMenuVisible: Boolean)
+    fun onFragmentChanged(shouldShowOptionsMenu: Boolean)
   }
 }
