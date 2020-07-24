@@ -25,6 +25,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
 import java.util.LinkedHashMap
+import kotlin.math.max
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 private const val DEBUG_LOG_TAG = "EditorFragment"
@@ -51,7 +52,6 @@ class EditorFragment : Fragment() {
     if (savedInstanceState != null) {
       if (savedInstanceState.containsKey(RATIO)) ratio = savedInstanceState.getFloat(RATIO)
     }
-
     initData()
     initUi()
     return rootView
@@ -82,7 +82,7 @@ class EditorFragment : Fragment() {
 
   private fun initUi() {
     initFrame()
-    initToolButtons()
+    initLowerButtons()
     initRecyclerWithFrames()
   }
 
@@ -95,7 +95,7 @@ class EditorFragment : Fragment() {
     setClickListenersForPhotosInFrame()
   }
 
-  private fun initToolButtons() {
+  private fun initLowerButtons() {
     rootView.findViewById<CardView>(R.id.button_frame).setOnClickListener { openFrameOptions() }
     rootView.findViewById<CardView>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
     rootView.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
@@ -195,8 +195,11 @@ class EditorFragment : Fragment() {
   }
 
   private fun toggleBorder() {
+    val largestDimension = max(canvasHeight, canvasWidth).toInt()
+    val maxBorderThicknessPx = largestDimension / 150
     val hasBorder = imageContainer.paddingStart <= 0
-    val thickness = if (hasBorder) resources.getDimensionPixelSize(R.dimen.border_thickness) else 0
+
+    val thickness = if (hasBorder) maxBorderThicknessPx else 0
     imageContainer.setPadding(thickness)
 
     for (i in 0 until imageContainer.childCount) {
@@ -238,20 +241,13 @@ class EditorFragment : Fragment() {
   private fun insertImageInFrame(uri: Uri?, position: Int) {
     val touchImageView = imageContainer.getChildAt(position) as TouchImageView
 
-    if (uri != null) {
-      touchImageView.scaleType = ImageView.ScaleType.CENTER
-      Glide
-        .with(this)
-        .load(uri)
-        .transition(withCrossFade())
-        .into(touchImageView)
-    } else {
-      touchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
-      Glide
-        .with(this)
-        .load(defaultImageUri)
-        .transition(withCrossFade())
-        .into(touchImageView)
-    }
+    if (uri != null) touchImageView.scaleType = ImageView.ScaleType.CENTER
+    else touchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+
+    Glide
+      .with(this)
+      .load(uri ?: defaultImageUri)
+      .transition(withCrossFade())
+      .into(touchImageView)
   }
 }
