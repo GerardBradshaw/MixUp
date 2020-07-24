@@ -6,25 +6,22 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.gerardbradshaw.mixup.AppInfo
 import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.ui.editor.EditorViewModel
 import java.lang.ClassCastException
 
-// TODO: Rename
+private const val LOG_TAG = "MoreAppsFragment"
 private const val DISPLAY_OPTIONS_MENU = "displayOptionsMenu"
-private const val ARG_PARAM2 = "param2"
 
 class MoreAppsFragment : Fragment() {
-  // TODO: Rename and change types
-  private var param1: String? = null
-  private var param2: String? = null
+  private lateinit var moreAppsViewModel: MoreAppsViewModel
   private lateinit var listener: OnFragmentCreatedListener
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    arguments?.let {
-      param2 = it.getString(ARG_PARAM2)
-    }
-  }
+  private lateinit var rootView: View
+  private lateinit var appList: ArrayList<AppInfo>
 
   override fun onAttach(context: Context) {
     super.onAttach(context)
@@ -41,8 +38,28 @@ class MoreAppsFragment : Fragment() {
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View? {
-    val rootView = inflater.inflate(R.layout.fragment_more_apps, container, false)
+    moreAppsViewModel = ViewModelProvider(this).get(MoreAppsViewModel::class.java)
+    rootView = inflater.inflate(R.layout.fragment_more_apps, container, false)
+
+    initData()
+    initViews()
+
     return rootView
+  }
+
+  private fun initData() {
+    appList = moreAppsViewModel.getAppList()
+
+  }
+
+  private fun initViews() {
+    val adapter = AppListAdapter(rootView.context, appList)
+
+    rootView.findViewById<RecyclerView>(R.id.apps_recycler).also {
+      it.adapter = adapter
+      it.layoutManager =
+        LinearLayoutManager(rootView.context, LinearLayoutManager.VERTICAL, false)
+    }
   }
 
   companion object {
