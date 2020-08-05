@@ -161,6 +161,7 @@ class ImageUtils(private val activity: Activity, private val listener: ImageSave
     }
   }
 
+  @Suppress("DEPRECATION")
   private fun saveBitmapToGalleryAndroidM(bitmap: Bitmap, filename: String): Boolean {
     try {
       val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)

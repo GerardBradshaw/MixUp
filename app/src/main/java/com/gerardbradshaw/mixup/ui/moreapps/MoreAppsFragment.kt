@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.gerardbradshaw.mixup.models.App
+import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 import java.lang.ClassCastException
 
@@ -20,7 +20,7 @@ class MoreAppsFragment : Fragment() {
   private lateinit var moreAppsViewModel: MoreAppsViewModel
   private lateinit var listener: OnFragmentCreatedListener
   private lateinit var rootView: View
-  private lateinit var appList: ArrayList<App>
+  private lateinit var appInfoList: ArrayList<AppInfo>
 
   override fun onAttach(context: Context) {
     super.onAttach(context)
@@ -47,12 +47,12 @@ class MoreAppsFragment : Fragment() {
   }
 
   private fun initData() {
-    appList = moreAppsViewModel.getAppList()
+    appInfoList = moreAppsViewModel.getAppList()
 
   }
 
   private fun initViews() {
-    val adapter = AppListAdapter(rootView.context, appList)
+    val adapter = AppListAdapter(rootView.context, appInfoList)
 
     rootView.findViewById<RecyclerView>(R.id.apps_recycler).also {
       it.adapter = adapter

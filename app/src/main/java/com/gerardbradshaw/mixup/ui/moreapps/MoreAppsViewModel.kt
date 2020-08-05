@@ -1,24 +1,22 @@
 package com.gerardbradshaw.mixup.ui.moreapps
 
 import androidx.lifecycle.ViewModel
-import com.gerardbradshaw.mixup.models.App
-import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.models.AppInfo
+import com.gerardbradshaw.mixup.di.moreapps.DaggerMoreAppsComponent
 
 class MoreAppsViewModel : ViewModel() {
-  private val appList = ArrayList<App>()
+
+  private val appList = ArrayList<AppInfo>()
 
   init {
-    appList.add(
-      App(
-        R.string.mater_title,
-        R.string.mater_description,
-        R.drawable.img_mater_logo,
-        R.string.mater_url
-      )
-    )
+    val component = DaggerMoreAppsComponent.create()
+
+    val materAppInfo = component.appInfo
+
+    appList.add(materAppInfo)
   }
 
-  fun getAppList() : ArrayList<App> {
+  fun getAppList() : ArrayList<AppInfo> {
     return appList
   }
 }

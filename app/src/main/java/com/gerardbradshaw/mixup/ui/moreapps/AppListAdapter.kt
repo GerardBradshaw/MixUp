@@ -10,10 +10,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.gerardbradshaw.mixup.models.App
+import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 
-class AppListAdapter(private val context: Context, private var apps: ArrayList<App>) :
+class AppListAdapter(private val context: Context, private var appInfos: ArrayList<AppInfo>) :
   RecyclerView.Adapter<AppListAdapter.AppInfoViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
@@ -24,11 +24,11 @@ class AppListAdapter(private val context: Context, private var apps: ArrayList<A
   }
 
   override fun getItemCount(): Int {
-    return apps.size
+    return appInfos.size
   }
 
   override fun onBindViewHolder(holder: AppInfoViewHolder, position: Int) {
-    val app = apps[position]
+    val app = appInfos[position]
     val resources = context.resources
 
     holder.titleView.text = resources.getString(app.titleRes)
