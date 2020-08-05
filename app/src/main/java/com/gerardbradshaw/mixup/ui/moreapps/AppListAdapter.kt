@@ -10,10 +10,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.gerardbradshaw.mixup.AppInfo
+import com.gerardbradshaw.mixup.models.App
 import com.gerardbradshaw.mixup.R
 
-class AppListAdapter(private val context: Context, private var apps: ArrayList<AppInfo>) :
+class AppListAdapter(private val context: Context, private var apps: ArrayList<App>) :
   RecyclerView.Adapter<AppListAdapter.AppInfoViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)

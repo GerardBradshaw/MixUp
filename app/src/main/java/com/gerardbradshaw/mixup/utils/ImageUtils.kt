@@ -1,4 +1,4 @@
-package com.gerardbradshaw.mixup
+package com.gerardbradshaw.mixup.utils
 
 import android.Manifest
 import android.app.Activity

@@ -1,4 +1,4 @@
-package com.gerardbradshaw.mixup
+package com.gerardbradshaw.mixup.utils
 
 import androidx.core.content.FileProvider
 

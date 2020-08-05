@@ -9,9 +9,8 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.gerardbradshaw.mixup.AppInfo
+import com.gerardbradshaw.mixup.models.App
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.ui.editor.EditorViewModel
 import java.lang.ClassCastException
 
 private const val LOG_TAG = "MoreAppsFragment"
@@ -21,7 +20,7 @@ class MoreAppsFragment : Fragment() {
   private lateinit var moreAppsViewModel: MoreAppsViewModel
   private lateinit var listener: OnFragmentCreatedListener
   private lateinit var rootView: View
-  private lateinit var appList: ArrayList<AppInfo>
+  private lateinit var appList: ArrayList<App>
 
   override fun onAttach(context: Context) {
     super.onAttach(context)
@@ -64,7 +63,7 @@ class MoreAppsFragment : Fragment() {
 
   companion object {
     @JvmStatic
-    fun newInstance(param1: String, param2: String): MoreAppsFragment =
+    fun newInstance(): MoreAppsFragment =
       MoreAppsFragment().apply {
         arguments = Bundle().apply {
           putBoolean(DISPLAY_OPTIONS_MENU, false)

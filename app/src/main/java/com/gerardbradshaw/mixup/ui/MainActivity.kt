@@ -1,4 +1,4 @@
-package com.gerardbradshaw.mixup
+package com.gerardbradshaw.mixup.ui
 
 import android.content.Intent
 import android.net.Uri
@@ -17,12 +17,15 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.gerardbradshaw.mixup.utils.ImageUtils
+import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment
 import com.google.android.material.navigation.NavigationView
 
 private const val LOG_TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedListener, ImageUtils.ImageSavedListener {
+class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedListener,
+  ImageUtils.ImageSavedListener {
   private lateinit var appBarConfiguration: AppBarConfiguration
   private var menu: Menu? = null
 
@@ -41,7 +44,10 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
     val navigationController = findNavController(R.id.nav_host_fragment)
 
     appBarConfiguration = AppBarConfiguration(
-      setOf(R.id.nav_mix_up, R.id.nav_more_apps), drawerLayout)
+      setOf(
+        R.id.nav_mix_up,
+        R.id.nav_more_apps
+      ), drawerLayout)
     setupActionBarWithNavController(navigationController, appBarConfiguration)
     navigationView.setupWithNavController(navigationController)
   }
