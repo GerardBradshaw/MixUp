@@ -23,148 +23,149 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.models.CanvasInfo
 import com.ortiz.touchview.TouchImageView
-import java.util.LinkedHashMap
 import kotlin.math.max
 
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
-private const val DEBUG_LOG_TAG = "EditorFragment"
+private const val LOG_TAG = "EditorFragment"
 private const val RATIO = "ratio"
 
-class EditorFragment : Fragment() {
+class EditorFragment : Fragment(), View.OnClickListener {
+
   private lateinit var editorViewModel: EditorViewModel
-  private lateinit var frameIconIdToLayoutId: LinkedHashMap<Int, Int>
-  private lateinit var ratioStringToValue: LinkedHashMap<String, Float>
-  private lateinit var rootView: View
-  private lateinit var imageContainer: GridLayout
-  private lateinit var imageUris: Array<Uri?>
+  private lateinit var imageGrid: GridLayout
   private lateinit var defaultImageUri: Uri
-  private var canvasHeight = 0f
-  private var canvasWidth = 0f
-  private var ratio = 1f
-  private var selectedImagePosition: Int = 0
+  private val canvasInfo = CanvasInfo()
+  private var lastSelectedImagePos: Int = 0
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                             savedInstanceState: Bundle?): View? {
+    return inflater.inflate(R.layout.fragment_editor, container, false)
+  }
+
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
-    rootView = inflater.inflate(R.layout.fragment_editor, container, false)
-
-    if (savedInstanceState != null) {
-      if (savedInstanceState.containsKey(RATIO)) ratio = savedInstanceState.getFloat(RATIO)
-    }
-    initData()
-    initUi()
-    return rootView
-  }
-
-  override fun onSaveInstanceState(outState: Bundle) {
-    outState.putFloat(RATIO, ratio)
-    super.onSaveInstanceState(outState)
-  }
-
-  private fun initData() {
-    frameIconIdToLayoutId = editorViewModel.getFrameIconIdToLayoutMap()
-    ratioStringToValue = editorViewModel.getRatioStringToValueMap()
-    imageUris = editorViewModel.getImageUris()
-
     defaultImageUri = Uri.parse(
       ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
           + resources.getResourcePackageName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceTypeName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceEntryName(R.drawable.img_tap_to_add_photo))
 
-    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
-    imageCard.post {
-      canvasHeight = imageCard.height.toFloat()
-      canvasWidth = imageCard.width.toFloat()
+    if (savedInstanceState != null && savedInstanceState.containsKey(RATIO)) {
+      canvasInfo.ratio = savedInstanceState.getFloat(RATIO)
+    }
+
+    initCanvasInfo()
+    initUi()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    outState.putFloat(RATIO, canvasInfo.ratio)
+    super.onSaveInstanceState(outState)
+  }
+
+  private fun initCanvasInfo() {
+    canvasInfo.imageUris = editorViewModel.getImageUris()
+
+    val canvas = requireView().findViewById<FrameLayout>(R.id.image_card_view)
+    canvas.post {
+      canvasInfo.height = canvas.height.toFloat()
+      canvasInfo.width = canvas.width.toFloat()
     }
   }
 
   private fun initUi() {
     initFrame()
-    initLowerButtons()
+    initButtons()
     initRecyclerWithFrames()
   }
 
   private fun initFrame() {
-    imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
+    imageGrid = requireView().findViewById<FrameLayout>(R.id.image_container)
       .getChildAt(0) as GridLayout
 
-    updateAspectRatioOfFrame(ratio)
+    updateAspectRatioOfFrame(canvasInfo.ratio)
     setPhotosInFrame()
     setClickListenersForPhotosInFrame()
   }
 
-  private fun initLowerButtons() {
-    rootView.findViewById<CardView>(R.id.button_frame).setOnClickListener { openFrameOptions() }
-    rootView.findViewById<CardView>(R.id.button_aspect).setOnClickListener { openAspectOptions() }
-    rootView.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener { toggleBorder() }
+  private fun initButtons() {
+    requireView().also {
+      it.findViewById<CardView>(R.id.button_frame).setOnClickListener(this)
+      it.findViewById<CardView>(R.id.button_aspect).setOnClickListener(this)
+      it.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener(this)
+    }
   }
 
   private fun initRecyclerWithFrames() {
-    val adapter = FrameListAdapter(rootView.context, frameIconIdToLayoutId)
+    val frameIconIdToLayoutId = editorViewModel.getFrameIconIdToLayoutMap()
+    val adapter = FrameListAdapter(requireView().context, frameIconIdToLayoutId)
 
     adapter.setButtonClickedListener(object : FrameListAdapter.ToolButtonClickedListener {
       override fun onToolButtonClicked(resId: Int?) {
         if (resId == null) {
-          Log.d(DEBUG_LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
+          Log.d(LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
           return
         }
 
         try {
-          rootView.context.resources.getResourceName(resId)
-          val imageContainer = rootView.findViewById<FrameLayout>(R.id.image_container)
+          requireView().context.resources.getResourceName(resId)
+          val imageContainer = requireView().findViewById<FrameLayout>(R.id.image_container)
           imageContainer.removeAllViews()
-          inflate(rootView.context, resId, imageContainer)
+          inflate(requireView().context, resId, imageContainer)
           initFrame()
 
         } catch (e: Resources.NotFoundException) {
-          Log.d(DEBUG_LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
+          Log.d(LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
         }
       }
     })
 
-    rootView.findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+    requireView().findViewById<RecyclerView>(R.id.tool_option_recycler).also {
       it.adapter = adapter
       it.layoutManager =
-        LinearLayoutManager(rootView.context, LinearLayoutManager.HORIZONTAL, false)
+        LinearLayoutManager(requireView().context, LinearLayoutManager.HORIZONTAL, false)
     }
   }
 
   private fun initRecyclerWithRatios() {
-    val adapter = RatioListAdapter(rootView.context, ratioStringToValue)
+    val ratioStringToValue = editorViewModel.getRatioStringToValueMap()
+    val adapter = RatioListAdapter(requireView().context, ratioStringToValue)
 
     adapter.setButtonClickedListener(object : RatioListAdapter.RatioButtonClickedListener {
       override fun onRatioButtonClicked(ratio: Float?) {
-        if (ratio == null) Log.d(DEBUG_LOG_TAG, "Ratio was null!")
+        if (ratio == null) Log.d(LOG_TAG, "Ratio was null!")
         else updateAspectRatioOfFrame(ratio)
       }
     })
 
-    rootView.findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+    requireView().findViewById<RecyclerView>(R.id.tool_option_recycler).also {
       it.adapter = adapter
-      it.layoutManager =
-        LinearLayoutManager(rootView.context, LinearLayoutManager.HORIZONTAL, false)
+      it.layoutManager = LinearLayoutManager(
+        requireView().context,
+        LinearLayoutManager.HORIZONTAL,
+        false)
     }
   }
 
   private fun updateAspectRatioOfFrame(ratio: Float) {
-    this.ratio = ratio
-    val imageCard = rootView.findViewById<FrameLayout>(R.id.image_card_view)
+    canvasInfo.ratio = ratio
+    val imageCard = requireView().findViewById<FrameLayout>(R.id.image_card_view)
 
     imageCard.post {
       var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
       var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
 
-      val shouldAdjustHeight = canvasHeight > canvasWidth / ratio
+      val adjustHeight = canvasInfo.height > canvasInfo.width / ratio
 
-      if (shouldAdjustHeight) {
-        val newHeight = canvasWidth / ratio
-        yMargin += (canvasHeight - newHeight) / 2f
+      if (adjustHeight) {
+        val newHeight = canvasInfo.width / ratio
+        yMargin += (canvasInfo.height - newHeight) / 2f
 
       } else {
-        val newWidth = canvasHeight * ratio
-        xMargin += (canvasWidth - newWidth) / 2f
+        val newWidth = canvasInfo.height * ratio
+        xMargin += (canvasInfo.width - newWidth) / 2f
       }
       updateMarginsOfView(
         imageCard, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
@@ -172,15 +173,15 @@ class EditorFragment : Fragment() {
   }
 
   private fun setPhotosInFrame() {
-    for (i in 0 until imageContainer.childCount) {
-      insertImageInFrame(imageUris[i], i)
+    for (i in 0 until imageGrid.childCount) {
+      insertImageInFrame(canvasInfo.imageUris[i], i)
     }
   }
 
   private fun setClickListenersForPhotosInFrame() {
-    for (i in 0 until imageContainer.childCount) {
-      imageContainer.getChildAt(i).setOnClickListener {
-        selectedImagePosition = i
+    for (i in 0 until imageGrid.childCount) {
+      imageGrid.getChildAt(i).setOnClickListener {
+        lastSelectedImagePos = i
         openGalleryToSelectImage()
       }
     }
@@ -195,15 +196,15 @@ class EditorFragment : Fragment() {
   }
 
   private fun toggleBorder() {
-    val largestDimension = max(canvasHeight, canvasWidth).toInt()
+    val largestDimension = max(canvasInfo.height, canvasInfo.width).toInt()
     val maxBorderThicknessPx = largestDimension / 150
-    val hasBorder = imageContainer.paddingStart <= 0
+    val hasBorder = imageGrid.paddingStart <= 0
 
     val thickness = if (hasBorder) maxBorderThicknessPx else 0
-    imageContainer.setPadding(thickness)
+    imageGrid.setPadding(thickness)
 
-    for (i in 0 until imageContainer.childCount) {
-      updateMarginsOfView(imageContainer.getChildAt(i), thickness, thickness, thickness, thickness)
+    for (i in 0 until imageGrid.childCount) {
+      updateMarginsOfView(imageGrid.getChildAt(i), thickness, thickness, thickness, thickness)
     }
   }
 
@@ -230,16 +231,16 @@ class EditorFragment : Fragment() {
   private fun onImageSelected(data: Intent) {
     val uri = data.data!!
 
-    if (imageContainer.childCount > selectedImagePosition) {
-      insertImageInFrame(uri, selectedImagePosition)
-      editorViewModel.addImageUri(uri, selectedImagePosition)
-      selectedImagePosition = 0
+    if (imageGrid.childCount > lastSelectedImagePos) {
+      insertImageInFrame(uri, lastSelectedImagePos)
+      editorViewModel.addImageUri(uri, lastSelectedImagePos)
+      lastSelectedImagePos = 0
     }
-    else Log.d(DEBUG_LOG_TAG, "Selected TouchImageView no longer exists")
+    else Log.d(LOG_TAG, "Selected TouchImageView no longer exists")
   }
 
   private fun insertImageInFrame(uri: Uri?, position: Int) {
-    val touchImageView = imageContainer.getChildAt(position) as TouchImageView
+    val touchImageView = imageGrid.getChildAt(position) as TouchImageView
 
     if (uri != null) touchImageView.scaleType = ImageView.ScaleType.CENTER
     else touchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
@@ -249,5 +250,15 @@ class EditorFragment : Fragment() {
       .load(uri ?: defaultImageUri)
       .transition(withCrossFade())
       .into(touchImageView)
+  }
+
+  override fun onClick(view: View?) {
+    if (view == null) return
+
+    when (view.id) {
+      R.id.button_frame -> openFrameOptions()
+      R.id.button_aspect -> openAspectOptions()
+      R.id.button_toggle_border -> toggleBorder()
+    }
   }
 }

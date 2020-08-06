@@ -21,7 +21,6 @@ import com.gerardbradshaw.mixup.utils.ImageUtils
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment
 import com.google.android.material.navigation.NavigationView
-import dagger.android.support.DaggerAppCompatActivity
 
 private const val LOG_TAG = "MainActivity"
 
