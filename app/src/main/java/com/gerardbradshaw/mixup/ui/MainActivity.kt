@@ -12,22 +12,20 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.*
 import com.gerardbradshaw.mixup.utils.ImageUtils
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment
 import com.google.android.material.navigation.NavigationView
 
 private const val LOG_TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedListener,
-  ImageUtils.ImageSavedListener {
+class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
+  NavController.OnDestinationChangedListener {
 
-  private lateinit var appBarConfiguration: AppBarConfiguration
+  private lateinit var appBarConfig: AppBarConfiguration
   private var menu: Menu? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,21 +38,15 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
     val toolbar: Toolbar = findViewById(R.id.editor_toolbar)
     setSupportActionBar(toolbar)
 
-    val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
-    val navigationView: NavigationView = findViewById(R.id.nav_view)
-    val navigationController = findNavController(R.id.nav_host_fragment)
+    appBarConfig = AppBarConfiguration(
+      setOf(R.id.nav_mix_up, R.id.nav_more_apps),
+      findViewById<DrawerLayout>(R.id.drawer_layout))
 
-    appBarConfiguration = AppBarConfiguration(
-      setOf(
-        R.id.nav_mix_up,
-        R.id.nav_more_apps
-      ), drawerLayout)
-    setupActionBarWithNavController(navigationController, appBarConfiguration)
-    navigationView.setupWithNavController(navigationController)
-  }
-
-  override fun onFragmentChanged(shouldShowOptionsMenu: Boolean) {
-    menu?.setGroupVisible(R.id.main_options_menu_group, shouldShowOptionsMenu)
+    findNavController(R.id.nav_host_fragment).also {
+      it.addOnDestinationChangedListener(this)
+      setupActionBarWithNavController(it, appBarConfig)
+      findViewById<NavigationView>(R.id.nav_view).setupWithNavController(it)
+    }
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -65,14 +57,14 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     when (item.itemId) {
-      R.id.action_share -> shareImage()
-      R.id.action_save -> saveImageToGallery()
-      R.id.action_reset -> resetImage()
+      R.id.action_share -> return shareImage()
+      R.id.action_save -> return saveImageToGallery()
+      R.id.action_reset -> return resetImage()
     }
-    return super.onOptionsItemSelected(item)
+    return false
   }
 
-  private fun shareImage() {
+  private fun shareImage(): Boolean {
     val view = findViewById<FrameLayout>(R.id.image_container)
 
     if (view != null) {
@@ -80,6 +72,7 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
       ImageUtils(this, this).prepareViewForSharing(view)
     }
     else toastErrorAndLog("Share failed. Unable to located image container.")
+    return true
   }
 
   override fun onReadyToShareImage(uri: Uri?) {
@@ -99,7 +92,7 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
     startActivity(Intent.createChooser(shareIntent, "Share to..."))
   }
 
-  private fun saveImageToGallery() {
+  private fun saveImageToGallery(): Boolean {
     val view = findViewById<FrameLayout>(R.id.image_container)
 
     if (view != null) {
@@ -107,6 +100,7 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
       ImageUtils(this, this).saveViewToGallery(view)
     }
     else toastErrorAndLog("Save failed. Unable to located image container.")
+    return true
   }
 
   override fun onImageSavedToGallery(isSuccess: Boolean) {
@@ -116,18 +110,23 @@ class MainActivity : AppCompatActivity(), MoreAppsFragment.OnFragmentCreatedList
     else toastErrorAndLog("Write to gallery failed.", "Not saved.")
   }
 
-  private fun resetImage() {
-    val navController = findNavController(R.id.nav_host_fragment)
-    navController.navigate(R.id.nav_mix_up)
+  private fun resetImage(): Boolean {
+    findNavController(R.id.nav_host_fragment).navigate(R.id.nav_mix_up)
+    return true
   }
 
   override fun onSupportNavigateUp(): Boolean {
     val navController = findNavController(R.id.nav_host_fragment)
-    return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    return navController.navigateUp(appBarConfig) || super.onSupportNavigateUp()
   }
 
   private fun toastErrorAndLog(logMsg: String, toastMsg: String = "Something went wrong :(") {
     Log.d(LOG_TAG, logMsg)
     Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
+  }
+
+  override fun onDestinationChanged(controller: NavController, dest: NavDestination, args: Bundle?) {
+    val showOptionsMenu = dest.id != R.id.nav_more_apps
+    menu?.setGroupVisible(R.id.main_options_menu_group, showOptionsMenu)
   }
 }
