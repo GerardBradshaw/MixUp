@@ -10,8 +10,7 @@ import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(
-  modules = [GlideModule::class, AppInfoModule::class, AppSubcomponents::class])
+@Component(modules = [GlideModule::class, AppSubcomponents::class])
 interface AppComponent {
 
   @Component.Factory
@@ -23,5 +22,4 @@ interface AppComponent {
   fun activityComponent(): ActivityComponent.Factory
   fun editorComponent(): EditorComponent.Factory
   fun moreAppsComponent(): MoreAppsComponent.Factory
-
 }

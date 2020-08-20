@@ -10,18 +10,16 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.*
-import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.utils.ImageUtils
 import com.gerardbradshaw.mixup.R
 import com.google.android.material.navigation.NavigationView
 
-private const val LOG_TAG = "MainActivity"
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   NavController.OnDestinationChangedListener {
@@ -33,18 +31,17 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    (application as BaseApplication).getAppComponent()
-      .activityComponent().create().inject(this)
+    // Nothing to inject here! But this is the code I'd use:
+    //(application as BaseApplication).getAppComponent().activityComponent().create().inject(this)
 
     initUi()
   }
 
   private fun initUi() {
-    val toolbar: Toolbar = findViewById(R.id.editor_toolbar)
-    setSupportActionBar(toolbar)
+    setSupportActionBar(findViewById(R.id.editor_toolbar))
 
     appBarConfig = AppBarConfiguration(
-      setOf(R.id.nav_mix_up, R.id.nav_more_apps),
+      setOf(R.id.nav_editor, R.id.nav_more_apps),
       findViewById<DrawerLayout>(R.id.drawer_layout))
 
     findNavController(R.id.nav_host_fragment).also {
@@ -116,7 +113,7 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   }
 
   private fun resetImage(): Boolean {
-    findNavController(R.id.nav_host_fragment).navigate(R.id.nav_mix_up)
+    findNavController(R.id.nav_host_fragment).navigate(R.id.nav_editor)
     return true
   }
 
@@ -126,7 +123,7 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   }
 
   private fun toastErrorAndLog(logMsg: String, toastMsg: String = "Something went wrong :(") {
-    Log.d(LOG_TAG, logMsg)
+    Log.d(TAG, logMsg)
     Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
   }
 

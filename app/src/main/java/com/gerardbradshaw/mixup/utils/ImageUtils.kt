@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-private const val LOG_TAG = "ImageUtils"
+private const val TAG = "ImageUtils"
 
 class ImageUtils(private val activity: Activity, private val listener: ImageSavedListener) {
 
@@ -76,7 +76,7 @@ class ImageUtils(private val activity: Activity, private val listener: ImageSave
         file)
 
     } catch (e: IOException) {
-      Log.d(LOG_TAG, "Error saving image to internal storage.")
+      Log.d(TAG, "Error saving image to internal storage.")
     }
     return uri
   }
@@ -97,7 +97,7 @@ class ImageUtils(private val activity: Activity, private val listener: ImageSave
       val requiredPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
 
       if (activity.checkSelfPermission(requiredPermission) == PackageManager.PERMISSION_DENIED) {
-        Log.d(LOG_TAG, "Save to gallery failed due to user permission denial")
+        Log.d(TAG, "Save to gallery failed due to user permission denial")
         listener.onImageSavedToGallery(false)
         return
       }
@@ -174,12 +174,12 @@ class ImageUtils(private val activity: Activity, private val listener: ImageSave
       return true
     }
     catch (e: FileNotFoundException) {
-      Log.d(LOG_TAG, "Save to gallery failed due to FileNotFoundException.")
+      Log.d(TAG, "Save to gallery failed due to FileNotFoundException.")
       e.printStackTrace()
       return false
     }
     catch (e: IOException) {
-      Log.d(LOG_TAG, "Save to gallery failed due to IOException.")
+      Log.d(TAG, "Save to gallery failed due to IOException.")
       e.printStackTrace()
       return false
     }

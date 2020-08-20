@@ -15,7 +15,7 @@ import com.gerardbradshaw.mixup.R
 import javax.inject.Inject
 import javax.inject.Named
 
-private const val LOG_TAG = "MoreAppsFragment"
+private const val TAG = "MoreAppsFragment"
 
 class MoreAppsFragment : Fragment() {
 

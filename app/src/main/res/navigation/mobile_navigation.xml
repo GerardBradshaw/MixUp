@@ -4,10 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_mix_up">
+    app:startDestination="@+id/nav_editor">
 
     <fragment
-        android:id="@+id/nav_mix_up"
+        android:id="@+id/nav_editor"
         android:name="com.gerardbradshaw.mixup.ui.editor.EditorFragment"
         android:label="@string/menu_mix_up"
         tools:layout="@layout/fragment_editor" />

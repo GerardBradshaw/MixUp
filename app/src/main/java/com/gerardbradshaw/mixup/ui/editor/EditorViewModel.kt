@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.gerardbradshaw.mixup.R
 import java.util.LinkedHashMap
 
-private const val LOG_TAG = "EditorViewModel"
+private const val TAG = "EditorViewModel"
 
 class EditorViewModel : ViewModel() {
 
@@ -26,7 +26,7 @@ class EditorViewModel : ViewModel() {
   }
 
   fun addImageUri(uri: Uri, position: Int) {
-    if (position >= imageUris.size) Log.d(LOG_TAG, "Cannot save URI. Invalid position.")
+    if (position >= imageUris.size) Log.d(TAG, "Cannot save URI. Invalid position.")
     else imageUris[position] = uri
   }
 

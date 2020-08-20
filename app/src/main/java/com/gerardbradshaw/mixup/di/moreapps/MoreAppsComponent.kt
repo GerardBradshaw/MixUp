@@ -5,7 +5,7 @@ import com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment
 import dagger.Subcomponent
 import javax.inject.Named
 
-@Subcomponent
+@Subcomponent(modules = [AppInfoModule::class])
 interface MoreAppsComponent {
 
   @Subcomponent.Factory

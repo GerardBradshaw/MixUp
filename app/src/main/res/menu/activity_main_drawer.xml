@@ -5,7 +5,7 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_mix_up"
+            android:id="@+id/nav_editor"
             android:icon="@drawable/ic_frame"
             android:title="@string/menu_mix_up" />
         <item

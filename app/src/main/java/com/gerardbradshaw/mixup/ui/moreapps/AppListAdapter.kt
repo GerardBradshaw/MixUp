@@ -11,12 +11,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
-import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 import java.util.*
-import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 private const val TAG = "AppListAdapter"
@@ -27,8 +24,9 @@ class AppListAdapter(private val context: Context) :
   private var appList: ArrayList<AppInfo>? = null
   private val inflater = LayoutInflater.from(context)
 
-  fun setAppList(appList: ArrayList<AppInfo>) {
-    Log.d(TAG, "setAppList: list = ${Arrays.toString(appList.toArray())}")
+  fun setAppList(appList: ArrayList<AppInfo>?) {
+    val listString = if (appList == null) "null" else Arrays.toString(appList.toArray())
+    Log.d(TAG, "setAppList: list = $listString")
     this.appList = appList
     notifyDataSetChanged()
   }

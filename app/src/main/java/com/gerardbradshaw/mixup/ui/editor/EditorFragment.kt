@@ -29,7 +29,7 @@ import com.ortiz.touchview.TouchImageView
 import javax.inject.Inject
 import kotlin.math.max
 
-private const val LOG_TAG = "EditorFragment"
+private const val TAG = "EditorFragment"
 private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 private const val IS_RETURN_SESSION = "is_continuing"
 
@@ -116,7 +116,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
             initCollage()
           }
         } catch (e: Resources.NotFoundException) {
-          Log.d(LOG_TAG, "onToolButtonClicked: Invalid resId for selected frame. ID: $resId}")
+          Log.d(TAG, "onToolButtonClicked: Invalid resId for selected frame. ID: $resId}")
         }
       }
     })
@@ -147,8 +147,6 @@ class EditorFragment : Fragment(), View.OnClickListener {
   }
 
   private fun onRatioChange(ratio: Float) {
-    viewModel.setRatio(ratio)
-
     requireView().findViewById<FrameLayout>(R.id.image_card_view).also {
       it.post {
         var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
@@ -224,7 +222,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
 
       lastSelectedImagePos = -1
     }
-    else Log.d(LOG_TAG, "onImageImported: Selected TouchImageView no longer exists")
+    else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
   }
 
   private fun loadImageIntoCollage(uri: Uri?, position: Int) {
