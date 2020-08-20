@@ -26,7 +26,7 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:contentDescription="@string/mater_image_content_description"
-                tools:src="@drawable/img_mater_logo" />
+                tools:src="@drawable/mater_logo" />
         </androidx.cardview.widget.CardView>
 
 

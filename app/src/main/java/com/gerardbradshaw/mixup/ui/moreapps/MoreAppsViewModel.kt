@@ -1,29 +1,21 @@
 package com.gerardbradshaw.mixup.ui.moreapps
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.di.moreapps.DaggerMoreAppsComponent
 import com.gerardbradshaw.mixup.models.AppInfo
 
 class MoreAppsViewModel : ViewModel() {
 
-  private val appList = ArrayList<AppInfo>()
+  private val appList = MutableLiveData<ArrayList<AppInfo>>()
 
-  init {
-    val component = DaggerMoreAppsComponent
-      .builder()
-      .titleRes(R.string.mater_title)
-      .descriptionRes(R.string.mater_description)
-      .urlRes(R.string.mater_url)
-      .iconRes(R.drawable.img_mater_logo)
-      .build()
-
-    val materAppInfo = component.appInfo
-
-    appList.add(materAppInfo)
+  fun getAppList(): LiveData<ArrayList<AppInfo>> {
+    return appList
   }
 
-  fun getAppList() : ArrayList<AppInfo> {
-    return appList
+  fun addAppToList(appInfo: AppInfo) {
+    val list = appList.value ?: ArrayList()
+    list.add(appInfo)
+    appList.value = list
   }
 }

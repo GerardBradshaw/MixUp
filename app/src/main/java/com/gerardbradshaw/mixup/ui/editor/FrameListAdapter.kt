@@ -41,7 +41,7 @@ class FrameListAdapter(context: Context, frames: LinkedHashMap<Int, Int>) :
   }
 
   interface ToolButtonClickedListener {
-    fun onToolButtonClicked(resId: Int?)
+    fun onToolButtonClicked(resId: Int)
   }
 
   fun setButtonClickedListener(listener: ToolButtonClickedListener) {

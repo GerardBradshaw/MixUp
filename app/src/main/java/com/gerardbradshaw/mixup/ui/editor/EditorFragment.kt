@@ -17,80 +17,86 @@ import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.models.CanvasInfo
 import com.ortiz.touchview.TouchImageView
+import javax.inject.Inject
 import kotlin.math.max
 
-private const val REQUEST_IMAGE_IMPORT_CODE = 1000
 private const val LOG_TAG = "EditorFragment"
-private const val RATIO = "ratio"
+private const val REQUEST_IMAGE_IMPORT_CODE = 1000
+private const val IS_RETURN_SESSION = "is_continuing"
 
 class EditorFragment : Fragment(), View.OnClickListener {
 
-  private lateinit var editorViewModel: EditorViewModel
-  private lateinit var imageGrid: GridLayout
-  private lateinit var defaultImageUri: Uri
-  private val canvasInfo = CanvasInfo()
-  private var lastSelectedImagePos: Int = 0
+  @Inject lateinit var glideInstance: RequestManager
+  private lateinit var viewModel: EditorViewModel
+  private lateinit var collage: GridLayout
+  private var lastSelectedImagePos: Int = -1
 
-  override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+
+  override fun onCreateView(inflater: LayoutInflater,
+                            container: ViewGroup?,
                             savedInstanceState: Bundle?): View? {
+
+    (requireActivity().application as BaseApplication).getAppComponent()
+      .editorComponent().create().inject(this)
+
     return inflater.inflate(R.layout.fragment_editor, container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    editorViewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
-    defaultImageUri = Uri.parse(
+    viewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
+
+    if (savedInstanceState == null || !savedInstanceState.getBoolean(IS_RETURN_SESSION)) {
+      initData()
+    }
+
+    viewModel.canvasRatio.observe(requireActivity(), Observer { onRatioChange(it) })
+
+    initUi()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    outState.putBoolean(IS_RETURN_SESSION, true)
+    super.onSaveInstanceState(outState)
+  }
+
+  private fun initData() {
+    viewModel.defaultImageUri = Uri.parse(
       ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
           + resources.getResourcePackageName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceTypeName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceEntryName(R.drawable.img_tap_to_add_photo))
 
-    if (savedInstanceState != null && savedInstanceState.containsKey(RATIO)) {
-      canvasInfo.ratio = savedInstanceState.getFloat(RATIO)
-    }
-
-    initCanvasInfo()
-    initUi()
-  }
-
-  override fun onSaveInstanceState(outState: Bundle) {
-    outState.putFloat(RATIO, canvasInfo.ratio)
-    super.onSaveInstanceState(outState)
-  }
-
-  private fun initCanvasInfo() {
-    canvasInfo.imageUris = editorViewModel.getImageUris()
-
     val canvas = requireView().findViewById<FrameLayout>(R.id.image_card_view)
     canvas.post {
-      canvasInfo.height = canvas.height.toFloat()
-      canvasInfo.width = canvas.width.toFloat()
+      viewModel.maxHeight = canvas.height.toFloat()
+      viewModel.maxWidth = canvas.width.toFloat()
     }
   }
 
   private fun initUi() {
-    initFrame()
-    initButtons()
-    initRecyclerWithFrames()
+    initCollage()
+    initOptionsButtons()
+    showFramesInRecycler()
   }
 
-  private fun initFrame() {
-    imageGrid = requireView().findViewById<FrameLayout>(R.id.image_container)
+  private fun initCollage() {
+    collage = requireView().findViewById<FrameLayout>(R.id.image_container)
       .getChildAt(0) as GridLayout
 
-    updateAspectRatioOfFrame(canvasInfo.ratio)
-    setPhotosInFrame()
-    setClickListenersForPhotosInFrame()
+    loadPhotosIntoCollage()
+    setCollageClickListeners()
   }
 
-  private fun initButtons() {
+  private fun initOptionsButtons() {
     requireView().also {
       it.findViewById<CardView>(R.id.button_frame).setOnClickListener(this)
       it.findViewById<CardView>(R.id.button_aspect).setOnClickListener(this)
@@ -98,26 +104,19 @@ class EditorFragment : Fragment(), View.OnClickListener {
     }
   }
 
-  private fun initRecyclerWithFrames() {
-    val frameIconIdToLayoutId = editorViewModel.getFrameIconIdToLayoutMap()
-    val adapter = FrameListAdapter(requireView().context, frameIconIdToLayoutId)
+  private fun showFramesInRecycler() {
+    val adapter = FrameListAdapter(requireContext(), viewModel.frameIconIdToLayoutId)
 
     adapter.setButtonClickedListener(object : FrameListAdapter.ToolButtonClickedListener {
-      override fun onToolButtonClicked(resId: Int?) {
-        if (resId == null) {
-          Log.d(LOG_TAG, "Resource ID for selected frame was null! Check recycler adapter.")
-          return
-        }
-
+      override fun onToolButtonClicked(resId: Int) {
         try {
-          requireView().context.resources.getResourceName(resId)
-          val imageContainer = requireView().findViewById<FrameLayout>(R.id.image_container)
-          imageContainer.removeAllViews()
-          inflate(requireView().context, resId, imageContainer)
-          initFrame()
-
+          requireView().findViewById<FrameLayout>(R.id.image_container).also {
+            it.removeAllViews()
+            inflate(requireContext(), resId, it)
+            initCollage()
+          }
         } catch (e: Resources.NotFoundException) {
-          Log.d(LOG_TAG, "Invalid resource ID for selected frame. Res ID = $resId.}")
+          Log.d(LOG_TAG, "onToolButtonClicked: Invalid resId for selected frame. ID: $resId}")
         }
       }
     })
@@ -125,18 +124,16 @@ class EditorFragment : Fragment(), View.OnClickListener {
     requireView().findViewById<RecyclerView>(R.id.tool_option_recycler).also {
       it.adapter = adapter
       it.layoutManager =
-        LinearLayoutManager(requireView().context, LinearLayoutManager.HORIZONTAL, false)
+        LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
     }
   }
 
-  private fun initRecyclerWithRatios() {
-    val ratioStringToValue = editorViewModel.getRatioStringToValueMap()
-    val adapter = RatioListAdapter(requireView().context, ratioStringToValue)
+  private fun showAspectRatiosInRecycler() {
+    val adapter = RatioListAdapter(requireView().context, viewModel.ratioStringToValue)
 
     adapter.setButtonClickedListener(object : RatioListAdapter.RatioButtonClickedListener {
-      override fun onRatioButtonClicked(ratio: Float?) {
-        if (ratio == null) Log.d(LOG_TAG, "Ratio was null!")
-        else updateAspectRatioOfFrame(ratio)
+      override fun onRatioButtonClicked(ratio: Float) {
+        viewModel.setRatio(ratio)
       }
     })
 
@@ -149,73 +146,60 @@ class EditorFragment : Fragment(), View.OnClickListener {
     }
   }
 
-  private fun updateAspectRatioOfFrame(ratio: Float) {
-    canvasInfo.ratio = ratio
-    val imageCard = requireView().findViewById<FrameLayout>(R.id.image_card_view)
+  private fun onRatioChange(ratio: Float) {
+    viewModel.setRatio(ratio)
 
-    imageCard.post {
-      var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
-      var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
+    requireView().findViewById<FrameLayout>(R.id.image_card_view).also {
+      it.post {
+        var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
+        var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
 
-      val adjustHeight = canvasInfo.height > canvasInfo.width / ratio
+        val shouldAdjustY = viewModel.maxHeight > viewModel.maxWidth / ratio
 
-      if (adjustHeight) {
-        val newHeight = canvasInfo.width / ratio
-        yMargin += (canvasInfo.height - newHeight) / 2f
+        if (shouldAdjustY) yMargin += (viewModel.maxHeight - (viewModel.maxWidth / ratio)) / 2f
+        else xMargin += (viewModel.maxWidth - (viewModel.maxHeight * ratio)) / 2f
 
-      } else {
-        val newWidth = canvasInfo.height * ratio
-        xMargin += (canvasInfo.width - newWidth) / 2f
+        updateMarginsOfView(it, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
       }
-      updateMarginsOfView(
-        imageCard, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
     }
   }
 
-  private fun setPhotosInFrame() {
-    for (i in 0 until imageGrid.childCount) {
-      insertImageInFrame(canvasInfo.imageUris[i], i)
+  private fun loadPhotosIntoCollage() {
+    for (i in 0 until collage.childCount) {
+      loadImageIntoCollage(viewModel.imageUris[i], i)
     }
   }
 
-  private fun setClickListenersForPhotosInFrame() {
-    for (i in 0 until imageGrid.childCount) {
-      imageGrid.getChildAt(i).setOnClickListener {
+  private fun setCollageClickListeners() {
+    for (i in 0 until collage.childCount) {
+      collage.getChildAt(i).setOnClickListener {
         lastSelectedImagePos = i
-        openGalleryToSelectImage()
+        startImageImportIntent()
       }
     }
-  }
-
-  private fun openFrameOptions() {
-    initRecyclerWithFrames()
-  }
-
-  private fun openAspectOptions() {
-    initRecyclerWithRatios()
   }
 
   private fun toggleBorder() {
-    val largestDimension = max(canvasInfo.height, canvasInfo.width).toInt()
-    val maxBorderThicknessPx = largestDimension / 150
-    val hasBorder = imageGrid.paddingStart <= 0
+    val largestDimension = max(viewModel.maxHeight, viewModel.maxWidth).toInt()
+    val maxBorderWidthPx = largestDimension / 150
 
-    val thickness = if (hasBorder) maxBorderThicknessPx else 0
-    imageGrid.setPadding(thickness)
+    val collageHasBorder = collage.paddingStart <= 0
 
-    for (i in 0 until imageGrid.childCount) {
-      updateMarginsOfView(imageGrid.getChildAt(i), thickness, thickness, thickness, thickness)
+    val width = if (collageHasBorder) maxBorderWidthPx else 0
+    collage.setPadding(width)
+
+    for (i in 0 until collage.childCount) {
+      updateMarginsOfView(collage.getChildAt(i), width, width, width, width)
     }
   }
 
-  private fun updateMarginsOfView(view: View, leftMargin: Int, topMargin: Int,
-                                  rightMargin: Int, bottomMargin: Int) {
+  private fun updateMarginsOfView(view: View, left: Int, top: Int, right: Int, bottom: Int) {
     val params = view.layoutParams as ViewGroup.MarginLayoutParams
-    params.setMargins(leftMargin, topMargin, rightMargin, bottomMargin)
+    params.setMargins(left, top, right, bottom)
     view.layoutParams = params
   }
 
-  private fun openGalleryToSelectImage() {
+  private fun startImageImportIntent() {
     val intent = Intent(Intent.ACTION_PICK)
     intent.type = "image/*"
     startActivityForResult(intent, REQUEST_IMAGE_IMPORT_CODE)
@@ -223,41 +207,43 @@ class EditorFragment : Fragment(), View.OnClickListener {
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     when (requestCode) {
-      REQUEST_IMAGE_IMPORT_CODE -> if (resultCode == RESULT_OK && data != null) onImageSelected(data)
+      REQUEST_IMAGE_IMPORT_CODE -> {
+        if (resultCode == RESULT_OK && data != null) onImageImported(data)
+      }
       else -> super.onActivityResult(requestCode, resultCode, data)
     }
   }
 
-  private fun onImageSelected(data: Intent) {
+  private fun onImageImported(data: Intent) {
     val uri = data.data!!
 
-    if (imageGrid.childCount > lastSelectedImagePos) {
-      insertImageInFrame(uri, lastSelectedImagePos)
-      editorViewModel.addImageUri(uri, lastSelectedImagePos)
-      lastSelectedImagePos = 0
+    if (collage.childCount > lastSelectedImagePos) {
+      loadImageIntoCollage(uri, lastSelectedImagePos)
+
+      viewModel.addImageUri(uri, lastSelectedImagePos)
+
+      lastSelectedImagePos = -1
     }
-    else Log.d(LOG_TAG, "Selected TouchImageView no longer exists")
+    else Log.d(LOG_TAG, "onImageImported: Selected TouchImageView no longer exists")
   }
 
-  private fun insertImageInFrame(uri: Uri?, position: Int) {
-    val touchImageView = imageGrid.getChildAt(position) as TouchImageView
+  private fun loadImageIntoCollage(uri: Uri?, position: Int) {
+    (collage.getChildAt(position) as TouchImageView).also {
+      it.scaleType =
+        if (uri != null) ImageView.ScaleType.CENTER
+        else ImageView.ScaleType.FIT_CENTER
 
-    if (uri != null) touchImageView.scaleType = ImageView.ScaleType.CENTER
-    else touchImageView.scaleType = ImageView.ScaleType.FIT_CENTER
-
-    Glide
-      .with(this)
-      .load(uri ?: defaultImageUri)
-      .transition(withCrossFade())
-      .into(touchImageView)
+      glideInstance
+        .load(uri ?: viewModel.defaultImageUri)
+        .transition(withCrossFade())
+        .into(it)
+    }
   }
 
   override fun onClick(view: View?) {
-    if (view == null) return
-
-    when (view.id) {
-      R.id.button_frame -> openFrameOptions()
-      R.id.button_aspect -> openAspectOptions()
+    when (view?.id) {
+      R.id.button_frame -> showFramesInRecycler()
+      R.id.button_aspect -> showAspectRatiosInRecycler()
       R.id.button_toggle_border -> toggleBorder()
     }
   }

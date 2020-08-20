@@ -45,6 +45,6 @@ class RatioListAdapter(context: Context, ratios: LinkedHashMap<String, Float>)
   }
 
   interface RatioButtonClickedListener {
-    fun onRatioButtonClicked(ratio: Float?)
+    fun onRatioButtonClicked(ratio: Float)
   }
 }

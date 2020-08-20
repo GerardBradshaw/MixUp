@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.*
+import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.utils.ImageUtils
 import com.gerardbradshaw.mixup.R
 import com.google.android.material.navigation.NavigationView
@@ -31,6 +32,10 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
+
+    (application as BaseApplication).getAppComponent()
+      .activityComponent().create().inject(this)
+
     initUi()
   }
 
