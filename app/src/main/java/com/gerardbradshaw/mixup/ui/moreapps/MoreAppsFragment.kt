@@ -13,13 +13,12 @@ import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 import javax.inject.Inject
-import javax.inject.Named
 
 private const val TAG = "MoreAppsFragment"
 
 class MoreAppsFragment : Fragment() {
 
-  @Inject @Named("mater_info") lateinit var materInfo: AppInfo
+  @Inject lateinit var appSet: Set<AppInfo>
   @Inject lateinit var adapter: AppListAdapter
   private lateinit var viewModel: MoreAppsViewModel
 
@@ -40,7 +39,7 @@ class MoreAppsFragment : Fragment() {
   }
 
   private fun initRecycler() {
-    viewModel.addAppToList(materInfo)
+    for (app in appSet) viewModel.addAppToList(app)
 
     viewModel.getAppList().observe(requireActivity(), Observer { adapter.setAppList(it) })
 
