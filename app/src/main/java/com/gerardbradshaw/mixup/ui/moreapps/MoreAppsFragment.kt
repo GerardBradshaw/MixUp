@@ -20,6 +20,7 @@ private const val TAG = "MoreAppsFragment"
 class MoreAppsFragment : Fragment() {
 
   @Inject @Named("mater_info") lateinit var materInfo: AppInfo
+  @Inject lateinit var adapter: AppListAdapter
   private lateinit var viewModel: MoreAppsViewModel
 
   override fun onCreateView(inflater: LayoutInflater,
@@ -27,21 +28,18 @@ class MoreAppsFragment : Fragment() {
                             savedInstanceState: Bundle?): View? {
 
     (requireActivity().application as BaseApplication).getAppComponent()
-      .moreAppsComponent().create().inject(this)
+      .moreAppsComponent().create(requireActivity()).inject(this)
 
     return inflater.inflate(R.layout.fragment_more_apps, container, false)
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
     viewModel = ViewModelProvider(this).get(MoreAppsViewModel::class.java)
 
     initRecycler()
   }
 
   private fun initRecycler() {
-    val adapter = AppListAdapter(requireView().context)
-
     viewModel.addAppToList(materInfo)
 
     viewModel.getAppList().observe(requireActivity(), Observer { adapter.setAppList(it) })

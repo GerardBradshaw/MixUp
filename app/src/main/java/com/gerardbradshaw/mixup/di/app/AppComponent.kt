@@ -3,7 +3,6 @@ package com.gerardbradshaw.mixup.di.app
 import android.app.Application
 import com.gerardbradshaw.mixup.di.activity.ActivityComponent
 import com.gerardbradshaw.mixup.di.editor.EditorComponent
-import com.gerardbradshaw.mixup.di.moreapps.AppInfoModule
 import com.gerardbradshaw.mixup.di.moreapps.MoreAppsComponent
 import dagger.BindsInstance
 import dagger.Component

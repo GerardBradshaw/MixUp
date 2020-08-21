@@ -11,14 +11,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 private const val TAG = "AppListAdapter"
 
-class AppListAdapter(private val context: Context) :
+class AppListAdapter @Inject constructor(private val context: Context,
+                                         private val glideInstance: RequestManager) :
   RecyclerView.Adapter<AppListAdapter.AppInfoViewHolder>() {
 
   private var appList: ArrayList<AppInfo>? = null
@@ -48,8 +51,7 @@ class AppListAdapter(private val context: Context) :
       holder.titleView.text = resources.getString(app.titleRes)
       holder.descriptionView.text = resources.getString(app.descriptionRes)
 
-      Glide
-        .with(context)
+      glideInstance
         .load(app.iconRes)
         .into(holder.iconView)
 
