@@ -52,8 +52,8 @@ abstract class AbstractCollageView(context: Context,
 
   // ------------------------ ABSTRACT COLLAGE VIEW PROPERTIES ------------------------
 
-  protected var initialLayoutWidth: Int = 0
-  protected var initialLayoutHeight: Int = 0
+  private val initialLayoutWidth: Int = layoutWidth
+  private val initialLayoutHeight: Int = layoutHeight
 
   /** True if an ACTION_DOWN motion event is detected without an ACTION_MOVE or ACTION_UP within the
   time specified by LONG_CLICK_DURATION. */
@@ -85,9 +85,6 @@ abstract class AbstractCollageView(context: Context,
   // ------------------------ INITIALIZATION ------------------------
 
   init {
-    initialLayoutWidth = layoutWidth
-    initialLayoutHeight = layoutHeight
-
     initSize(layoutWidth, layoutHeight)
   }
 
@@ -100,14 +97,29 @@ abstract class AbstractCollageView(context: Context,
   /** Sets the image at child [index] to the image at [uri]. If Uri is invalid, the default image is
    loaded. */
   override fun setImageAt(index: Int, uri: Uri?) {
-    // TODO use URI
     if (index < imageViews.size) {
-      Glide
-        .with(context)
-        .load(R.drawable.img_tap_to_add_photo)
-        .transition(DrawableTransitionOptions.withCrossFade())
-        .into(imageViews[index])
-      imageViews[index].scaleType = ImageView.ScaleType.CENTER_CROP
+      if (uri != null) {
+        imageViews[index].apply {
+          this.scaleType = ImageView.ScaleType.CENTER
+          this.isZoomEnabled = true
+
+          Glide.with(context)
+            .load(uri)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+        }
+      }
+      else {
+        imageViews[index].apply {
+          this.scaleType = ImageView.ScaleType.CENTER_INSIDE
+          this.isZoomEnabled = false
+
+          Glide.with(context)
+            .load(R.drawable.rectangle_background)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(this)
+        }
+      }
     }
     else Log.d(TAG, "setImageAt: invalid index")
   }
@@ -122,13 +134,30 @@ abstract class AbstractCollageView(context: Context,
       layoutParams.height = newHeight
     }
 
-    val xScale = newWidth.toFloat() / initialLayoutWidth.toFloat()
-    val yScale = newHeight.toFloat() / initialLayoutHeight.toFloat()
+    val currentXScale = layoutWidth.toFloat() / initialLayoutWidth.toFloat()
+    val newXScale = newWidth / initialLayoutWidth.toFloat()
+
+    val currentYScale = layoutHeight.toFloat() / initialLayoutHeight.toFloat()
+    val newYScale = newHeight / initialLayoutHeight.toFloat()
 
     layoutWidth = newWidth
     layoutHeight = newHeight
 
-    scaleViews(xScale, yScale)
+    scaleViews(newXScale / currentXScale, newYScale / currentYScale)
+  }
+
+  fun setRatio(ratio: Float) {
+    if (isFrameInflated) {
+      val shouldAdjustHeight = initialLayoutHeight > initialLayoutWidth / ratio
+
+      if (shouldAdjustHeight) {
+        resize(initialLayoutWidth, (initialLayoutWidth.toFloat() / ratio).toInt())
+      }
+      else {
+        resize((initialLayoutHeight.toFloat() * ratio).toInt(), initialLayoutHeight)
+      }
+    }
+    else Log.d(TAG, "setRatio: could not set ratio because the frame was not inflated.")
   }
 
   /** Enables the border if [enableBorder] is true, otherwise the border is disabled. */
@@ -398,6 +427,6 @@ abstract class AbstractCollageView(context: Context,
 
   companion object {
     private const val TAG = "AbstractCollageView"
-    private const val LONG_CLICK_DURATION = 0L
+    private const val LONG_CLICK_DURATION = 300L
   }
 }

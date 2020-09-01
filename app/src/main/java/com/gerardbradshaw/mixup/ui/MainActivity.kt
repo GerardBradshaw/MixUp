@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   }
 
   private fun shareImage(): Boolean {
-    val view = findViewById<FrameLayout>(R.id.image_container)
+    val view = findViewById<FrameLayout>(R.id.collage_frame)
 
     if (view != null) {
       findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.VISIBLE
@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   }
 
   private fun saveImageToGallery(): Boolean {
-    val view = findViewById<FrameLayout>(R.id.image_container)
+    val view = findViewById<FrameLayout>(R.id.collage_frame)
 
     if (view != null) {
       findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.VISIBLE

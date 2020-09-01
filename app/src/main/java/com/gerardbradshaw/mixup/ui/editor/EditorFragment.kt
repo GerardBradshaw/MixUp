@@ -3,39 +3,46 @@ package com.gerardbradshaw.mixup.ui.editor
 import android.app.Activity.RESULT_OK
 import android.content.ContentResolver
 import android.content.Intent
-import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.inflate
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
-import android.widget.GridLayout
-import android.widget.ImageView
 import androidx.cardview.widget.CardView
-import androidx.core.view.setPadding
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.collageview.AbstractCollageView
+import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import com.ortiz.touchview.TouchImageView
 import javax.inject.Inject
-import kotlin.math.max
+import kotlin.math.roundToInt
 
 class EditorFragment : Fragment(), View.OnClickListener {
 
   @Inject lateinit var glideInstance: RequestManager
   private lateinit var viewModel: EditorViewModel
-  private lateinit var collage: GridLayout
-  private var lastSelectedImagePos: Int = -1
 
+  private lateinit var rootView: View
+  private lateinit var collageViewFactory: CollageViewFactory
+  private lateinit var collage: AbstractCollageView
+  private lateinit var parentFrame: FrameLayout
+  private lateinit var collageFrame: FrameLayout
+  private var collageIsInitiated = false
+
+  private var lastImageClickedIndex: Int = -1
+
+
+  // ------------------------ INITIALIZATION ------------------------
 
   override fun onCreateView(inflater: LayoutInflater,
                             container: ViewGroup?,
@@ -49,47 +56,66 @@ class EditorFragment : Fragment(), View.OnClickListener {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     viewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
+    rootView = view
 
     if (savedInstanceState == null || !savedInstanceState.getBoolean(IS_RETURN_SESSION)) {
-      initData()
+      // TODO restore saved data
     }
 
     viewModel.canvasRatio.observe(requireActivity(), Observer { onRatioChange(it) })
 
-    initUi()
+    initOptionsButtons()
+    showCollageTypesInRecycler()
+    initCollage()
   }
 
-  override fun onSaveInstanceState(outState: Bundle) {
-    outState.putBoolean(IS_RETURN_SESSION, true)
-    super.onSaveInstanceState(outState)
+  private fun initCollage() {
+    parentFrame = rootView.findViewById(R.id.parent_frame)
+
+    collageFrame = rootView.findViewById(R.id.collage_frame)
+
+    collageFrame.viewTreeObserver.addOnGlobalLayoutListener(
+      object : ViewTreeObserver.OnGlobalLayoutListener {
+        override fun onGlobalLayout() {
+          if (collageFrame.height > 0) {
+            initViewModelData()
+            initCollageViewFactory()
+            initDefaultCollage()
+
+            collageIsInitiated = true
+            collageFrame.viewTreeObserver.removeOnGlobalLayoutListener(this)
+          }
+        }
+      })
   }
 
-  private fun initData() {
+  private fun initViewModelData() {
     viewModel.defaultImageUri = Uri.parse(
       ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
           + resources.getResourcePackageName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceTypeName(R.drawable.img_tap_to_add_photo) + '/'
           + resources.getResourceEntryName(R.drawable.img_tap_to_add_photo))
 
-    val canvas = requireView().findViewById<FrameLayout>(R.id.image_card_view)
-    canvas.post {
-      viewModel.maxHeight = canvas.height.toFloat()
-      viewModel.maxWidth = canvas.width.toFloat()
-    }
+    viewModel.collageLayoutWidth = collageFrame.width.toFloat()
+    viewModel.collageLayoutHeight = collageFrame.height.toFloat()
   }
 
-  private fun initUi() {
-    initCollage()
-    initOptionsButtons()
-    showFramesInRecycler()
+  private fun initDefaultCollage() {
+    collage = collageViewFactory.getCollage(CollageViewFactory.CollageType.THREE_IMAGE_2)
+
+    collageFrame.addView(collage)
+
+    collage.setImageClickListener(this)
   }
 
-  private fun initCollage() {
-    collage = requireView().findViewById<FrameLayout>(R.id.image_container)
-      .getChildAt(0) as GridLayout
-
-    loadPhotosIntoCollage()
-    setCollageClickListeners()
+  private fun initCollageViewFactory() {
+    collageViewFactory = CollageViewFactory(
+      context = rootView.context,
+      attrs = null,
+      layoutWidth = collageFrame.width,
+      layoutHeight = collageFrame.height,
+      isBorderEnabled = false,
+      imageUris = viewModel.imageUris)
   }
 
   private fun initOptionsButtons() {
@@ -100,20 +126,26 @@ class EditorFragment : Fragment(), View.OnClickListener {
     }
   }
 
-  private fun showFramesInRecycler() {
-    val adapter = FrameListAdapter(requireContext(), viewModel.frameIconIdToLayoutId)
 
-    adapter.setButtonClickedListener(object : FrameListAdapter.ToolButtonClickedListener {
-      override fun onToolButtonClicked(resId: Int) {
-        try {
-          requireView().findViewById<FrameLayout>(R.id.image_container).also {
-            it.removeAllViews()
-            inflate(requireContext(), resId, it)
-            initCollage()
-          }
-        } catch (e: Resources.NotFoundException) {
-          Log.d(TAG, "onToolButtonClicked: Invalid resId for selected frame. ID: $resId}")
-        }
+  // ------------------------ FINALIZATION ------------------------
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    outState.putBoolean(IS_RETURN_SESSION, true)
+    super.onSaveInstanceState(outState)
+  }
+
+
+  // ------------------------ COLLAGE VIEWS ------------------------
+
+  private fun showCollageTypesInRecycler() {
+    val adapter = CollageTypeListAdapter(requireContext(), viewModel.collageIconIdToType)
+
+    adapter.setCollageTypeClickedListener(object : CollageTypeListAdapter.TypeClickedListener {
+      override fun onCollageTypeClicked(collageType: CollageViewFactory.CollageType) {
+        collage = collageViewFactory.getCollage(collageType)
+        collageFrame.removeAllViews()
+        collageFrame.addView(collage)
+        collage.setImageClickListener(this@EditorFragment)
       }
     })
 
@@ -123,6 +155,9 @@ class EditorFragment : Fragment(), View.OnClickListener {
         LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
     }
   }
+
+
+  // ------------------------ RATIOS ------------------------
 
   private fun showAspectRatiosInRecycler() {
     val adapter = RatioListAdapter(requireView().context, viewModel.ratioStringToValue)
@@ -143,55 +178,25 @@ class EditorFragment : Fragment(), View.OnClickListener {
   }
 
   private fun onRatioChange(ratio: Float) {
-    requireView().findViewById<FrameLayout>(R.id.image_card_view).also {
-      it.post {
-        var xMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
-        var yMargin = resources.getDimensionPixelSize(R.dimen.image_init_margin).toFloat()
+    if (collageIsInitiated) {
+      collage.setRatio(ratio)
 
-        val shouldAdjustY = viewModel.maxHeight > viewModel.maxWidth / ratio
-
-        if (shouldAdjustY) yMargin += (viewModel.maxHeight - (viewModel.maxWidth / ratio)) / 2f
-        else xMargin += (viewModel.maxWidth - (viewModel.maxHeight * ratio)) / 2f
-
-        updateMarginsOfView(it, xMargin.toInt(), yMargin.toInt(), xMargin.toInt(), yMargin.toInt())
+      parentFrame.updateLayoutParams {
+        this.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        this.height = ViewGroup.LayoutParams.WRAP_CONTENT
       }
     }
   }
 
-  private fun loadPhotosIntoCollage() {
-    for (i in 0 until collage.childCount) {
-      loadImageIntoCollage(viewModel.imageUris[i], i)
-    }
-  }
 
-  private fun setCollageClickListeners() {
-    for (i in 0 until collage.childCount) {
-      collage.getChildAt(i).setOnClickListener {
-        lastSelectedImagePos = i
-        startImageImportIntent()
-      }
-    }
-  }
+  // ------------------------ BORDER ------------------------
 
   private fun toggleBorder() {
-    val largestDimension = max(viewModel.maxHeight, viewModel.maxWidth).toInt()
-    val maxBorderWidthPx = largestDimension / 150
-
-    val collageHasBorder = collage.paddingStart <= 0
-
-    val width = if (collageHasBorder) maxBorderWidthPx else 0
-    collage.setPadding(width)
-
-    for (i in 0 until collage.childCount) {
-      updateMarginsOfView(collage.getChildAt(i), width, width, width, width)
-    }
+    collage.toggleBorder()
   }
 
-  private fun updateMarginsOfView(view: View, left: Int, top: Int, right: Int, bottom: Int) {
-    val params = view.layoutParams as ViewGroup.MarginLayoutParams
-    params.setMargins(left, top, right, bottom)
-    view.layoutParams = params
-  }
+
+  // ------------------------ IMPORTING IMAGES ------------------------
 
   private fun startImageImportIntent() {
     val intent = Intent(Intent.ACTION_PICK)
@@ -210,33 +215,27 @@ class EditorFragment : Fragment(), View.OnClickListener {
 
   private fun onImageImported(data: Intent) {
     val uri = data.data!!
+    viewModel.addImageUri(uri, lastImageClickedIndex)
 
-    if (collage.childCount > lastSelectedImagePos) {
-      loadImageIntoCollage(uri, lastSelectedImagePos)
-
-      viewModel.addImageUri(uri, lastSelectedImagePos)
-
-      lastSelectedImagePos = -1
+    if (collage.childCount > lastImageClickedIndex) {
+      collage.setImageAt(lastImageClickedIndex, uri)
+      lastImageClickedIndex = -1
     }
     else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
   }
 
   private fun loadImageIntoCollage(uri: Uri?, position: Int) {
-    (collage.getChildAt(position) as TouchImageView).also {
-      it.scaleType =
-        if (uri != null) ImageView.ScaleType.CENTER
-        else ImageView.ScaleType.FIT_CENTER
-
-      glideInstance
-        .load(uri ?: viewModel.defaultImageUri)
-        .transition(withCrossFade())
-        .into(it)
-    }
+    collage.setImageAt(position, uri)
   }
 
   override fun onClick(view: View?) {
+    if (view is TouchImageView) {
+      lastImageClickedIndex = collage.indexOfChild(view)
+      startImageImportIntent()
+    }
+
     when (view?.id) {
-      R.id.button_frame -> showFramesInRecycler()
+      R.id.button_frame -> showCollageTypesInRecycler()
       R.id.button_aspect -> showAspectRatiosInRecycler()
       R.id.button_toggle_border -> toggleBorder()
     }

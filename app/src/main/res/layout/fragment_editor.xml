@@ -13,26 +13,28 @@
         android:layout_weight="1"
         android:layout_height="0dp">
 
-        <androidx.cardview.widget.CardView
+        <FrameLayout
+            android:id="@+id/parent_frame"
             android:layout_gravity="center"
-            android:id="@+id/image_card_view"
             android:layout_width="match_parent"
-            android:layout_margin="@dimen/image_init_margin"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" >
 
-            <FrameLayout
-                android:id="@+id/image_container"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/image_card_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_margin="@dimen/image_init_margin">
 
-                <include
-                    layout="@layout/frame_3img_0"
+                <FrameLayout
+                    android:id="@+id/collage_frame"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center">
 
-            </FrameLayout>
-
-        </androidx.cardview.widget.CardView>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
     </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView

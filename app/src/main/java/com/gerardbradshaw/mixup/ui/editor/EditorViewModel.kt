@@ -5,21 +5,22 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import java.util.LinkedHashMap
 
 class EditorViewModel : ViewModel() {
 
-  val frameIconIdToLayoutId = LinkedHashMap<Int, Int>()
+  val collageIconIdToType = LinkedHashMap<Int, CollageViewFactory.CollageType>()
   val ratioStringToValue = LinkedHashMap<String, Float>()
   val canvasRatio = MutableLiveData<Float>()
-  var maxHeight = 0f
-  var maxWidth = 0f
+  var collageLayoutHeight = 0f
+  var collageLayoutWidth = 0f
   val imageUris = arrayOfNulls<Uri>(8)
   var defaultImageUri: Uri? = null
 
   init {
-    initRatioStringToValueMap()
-    initFrameIconIdToLayoutIdMap()
+    initRatioMap()
+    initCollageTypeMap()
     canvasRatio.value = 1f
   }
 
@@ -32,23 +33,23 @@ class EditorViewModel : ViewModel() {
     canvasRatio.value = ratio
   }
 
-  private fun initFrameIconIdToLayoutIdMap() {
-    frameIconIdToLayoutId[R.drawable.frame_2img_0] = R.layout.frame_2img_0
-    frameIconIdToLayoutId[R.drawable.frame_2img_1] = R.layout.frame_2img_1
-    frameIconIdToLayoutId[R.drawable.frame_3img_0] = R.layout.frame_3img_0
-    frameIconIdToLayoutId[R.drawable.frame_3img_1] = R.layout.frame_3img_1
-    frameIconIdToLayoutId[R.drawable.frame_3img_2] = R.layout.frame_3img_2
-    frameIconIdToLayoutId[R.drawable.frame_3img_3] = R.layout.frame_3img_3
-    frameIconIdToLayoutId[R.drawable.frame_3img_4] = R.layout.frame_3img_4
-    frameIconIdToLayoutId[R.drawable.frame_3img_5] = R.layout.frame_3img_5
-    frameIconIdToLayoutId[R.drawable.frame_4img_0] = R.layout.frame_4img_0
-    frameIconIdToLayoutId[R.drawable.frame_4img_1] = R.layout.frame_4img_1
-    frameIconIdToLayoutId[R.drawable.frame_4img_2] = R.layout.frame_4img_2
-    frameIconIdToLayoutId[R.drawable.frame_4img_3] = R.layout.frame_4img_3
-    frameIconIdToLayoutId[R.drawable.frame_4img_4] = R.layout.frame_4img_4
+  private fun initCollageTypeMap() {
+    collageIconIdToType[R.drawable.ic_collage_2_image_vertical] = CollageViewFactory.CollageType.TWO_IMAGE_VERTICAL
+    collageIconIdToType[R.drawable.ic_collage_2_image_horizontal] = CollageViewFactory.CollageType.TWO_IMAGE_HORIZONTAL
+    collageIconIdToType[R.drawable.ic_collage_type_3image0] = CollageViewFactory.CollageType.THREE_IMAGE_0
+    collageIconIdToType[R.drawable.ic_collage_type_3image1] = CollageViewFactory.CollageType.THREE_IMAGE_1
+    collageIconIdToType[R.drawable.ic_collage_type_3image2] = CollageViewFactory.CollageType.THREE_IMAGE_2
+    collageIconIdToType[R.drawable.ic_collage_type_3image3] = CollageViewFactory.CollageType.THREE_IMAGE_3
+    collageIconIdToType[R.drawable.ic_collage_type_3image4] = CollageViewFactory.CollageType.THREE_IMAGE_HORIZONTAL
+    collageIconIdToType[R.drawable.ic_collage_type_3image5] = CollageViewFactory.CollageType.THREE_IMAGE_VERTICAL
+    collageIconIdToType[R.drawable.ic_collage_type_4image0] = CollageViewFactory.CollageType.FOUR_IMAGE_0
+    collageIconIdToType[R.drawable.ic_collage_type_4image1] = CollageViewFactory.CollageType.FOUR_IMAGE_1
+    collageIconIdToType[R.drawable.ic_collage_type_4image2] = CollageViewFactory.CollageType.FOUR_IMAGE_2
+    collageIconIdToType[R.drawable.ic_collage_type_4image3] = CollageViewFactory.CollageType.FOUR_IMAGE_3
+    collageIconIdToType[R.drawable.ic_collage_type_4image4] = CollageViewFactory.CollageType.FOUR_IMAGE_4
   }
 
-  private fun initRatioStringToValueMap() {
+  private fun initRatioMap() {
     ratioStringToValue["1:1"] = 1f
 
     ratioStringToValue["16:9"] = 16f / 9f
