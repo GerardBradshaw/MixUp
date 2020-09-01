@@ -19,8 +19,6 @@ import com.gerardbradshaw.mixup.utils.ImageUtils
 import com.gerardbradshaw.mixup.R
 import com.google.android.material.navigation.NavigationView
 
-private const val TAG = "MainActivity"
-
 class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   NavController.OnDestinationChangedListener {
 
@@ -130,5 +128,9 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
   override fun onDestinationChanged(controller: NavController, dest: NavDestination, args: Bundle?) {
     val showOptionsMenu = dest.id != R.id.nav_more_apps
     menu?.setGroupVisible(R.id.main_options_menu_group, showOptionsMenu)
+  }
+
+  companion object {
+    private const val TAG = "MainActivity"
   }
 }

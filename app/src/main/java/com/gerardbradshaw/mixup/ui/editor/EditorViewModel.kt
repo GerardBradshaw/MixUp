@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.gerardbradshaw.mixup.R
 import java.util.LinkedHashMap
 
-private const val TAG = "EditorViewModel"
-
 class EditorViewModel : ViewModel() {
 
   val frameIconIdToLayoutId = LinkedHashMap<Int, Int>()
@@ -70,5 +68,9 @@ class EditorViewModel : ViewModel() {
 
     ratioStringToValue["3:2"] = 3f / 2f
     ratioStringToValue["2:3"] = 2f / 3f
+  }
+
+  companion object {
+    private const val TAG = "EditorViewModel"
   }
 }

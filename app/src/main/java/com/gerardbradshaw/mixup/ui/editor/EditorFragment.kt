@@ -29,10 +29,6 @@ import com.ortiz.touchview.TouchImageView
 import javax.inject.Inject
 import kotlin.math.max
 
-private const val TAG = "EditorFragment"
-private const val REQUEST_IMAGE_IMPORT_CODE = 1000
-private const val IS_RETURN_SESSION = "is_continuing"
-
 class EditorFragment : Fragment(), View.OnClickListener {
 
   @Inject lateinit var glideInstance: RequestManager
@@ -244,5 +240,11 @@ class EditorFragment : Fragment(), View.OnClickListener {
       R.id.button_aspect -> showAspectRatiosInRecycler()
       R.id.button_toggle_border -> toggleBorder()
     }
+  }
+
+  companion object {
+    private const val TAG = "EditorFragment"
+    private const val REQUEST_IMAGE_IMPORT_CODE = 1000
+    private const val IS_RETURN_SESSION = "is_continuing"
   }
 }

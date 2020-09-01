@@ -26,9 +26,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-
-private const val TAG = "ImageUtils"
-
 class ImageUtils(private val activity: Activity, private val listener: ImageSavedListener) {
 
   private fun createBitmapFrom(view: View): Bitmap {
@@ -194,5 +191,9 @@ class ImageUtils(private val activity: Activity, private val listener: ImageSave
   interface ImageSavedListener {
     fun onImageSavedToGallery(isSuccess: Boolean)
     fun onReadyToShareImage(uri: Uri?)
+  }
+
+  companion object {
+    private const val TAG = "ImageUtils"
   }
 }
