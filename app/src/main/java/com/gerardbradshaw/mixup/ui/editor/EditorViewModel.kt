@@ -13,10 +13,7 @@ class EditorViewModel : ViewModel() {
   val collageIconIdToType = LinkedHashMap<Int, CollageViewFactory.CollageType>()
   val ratioStringToValue = LinkedHashMap<String, Float>()
   val canvasRatio = MutableLiveData<Float>()
-  var collageLayoutHeight = 0f
-  var collageLayoutWidth = 0f
   val imageUris = arrayOfNulls<Uri>(8)
-  var defaultImageUri: Uri? = null
 
   init {
     initRatioMap()

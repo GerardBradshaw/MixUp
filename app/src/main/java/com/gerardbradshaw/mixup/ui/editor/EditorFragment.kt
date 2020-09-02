@@ -1,7 +1,6 @@
 package com.gerardbradshaw.mixup.ui.editor
 
 import android.app.Activity.RESULT_OK
-import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -18,26 +17,23 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.RequestManager
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.collageview.AbstractCollageView
 import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import com.ortiz.touchview.TouchImageView
-import javax.inject.Inject
-import kotlin.math.roundToInt
 
 class EditorFragment : Fragment(), View.OnClickListener {
 
-  @Inject lateinit var glideInstance: RequestManager
-  private lateinit var viewModel: EditorViewModel
+  //@Inject lateinit var glideInstance: RequestManager
 
   private lateinit var rootView: View
+  private lateinit var viewModel: EditorViewModel
   private lateinit var collageViewFactory: CollageViewFactory
-  private lateinit var collage: AbstractCollageView
-  private lateinit var parentFrame: FrameLayout
+
+  private lateinit var collageFrameParent: FrameLayout
   private lateinit var collageFrame: FrameLayout
-  private var collageIsInitiated = false
+  private lateinit var collage: AbstractCollageView
 
   private var lastImageClickedIndex: Int = -1
 
@@ -70,7 +66,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
   }
 
   private fun initCollage() {
-    parentFrame = rootView.findViewById(R.id.parent_frame)
+    collageFrameParent = rootView.findViewById(R.id.parent_frame)
 
     collageFrame = rootView.findViewById(R.id.collage_frame)
 
@@ -78,26 +74,13 @@ class EditorFragment : Fragment(), View.OnClickListener {
       object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {
           if (collageFrame.height > 0) {
-            initViewModelData()
             initCollageViewFactory()
             initDefaultCollage()
 
-            collageIsInitiated = true
             collageFrame.viewTreeObserver.removeOnGlobalLayoutListener(this)
           }
         }
       })
-  }
-
-  private fun initViewModelData() {
-    viewModel.defaultImageUri = Uri.parse(
-      ContentResolver.SCHEME_ANDROID_RESOURCE + "://"
-          + resources.getResourcePackageName(R.drawable.img_tap_to_add_photo) + '/'
-          + resources.getResourceTypeName(R.drawable.img_tap_to_add_photo) + '/'
-          + resources.getResourceEntryName(R.drawable.img_tap_to_add_photo))
-
-    viewModel.collageLayoutWidth = collageFrame.width.toFloat()
-    viewModel.collageLayoutHeight = collageFrame.height.toFloat()
   }
 
   private fun initDefaultCollage() {
@@ -149,7 +132,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
       }
     })
 
-    requireView().findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
       it.adapter = adapter
       it.layoutManager =
         LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -168,7 +151,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
       }
     })
 
-    requireView().findViewById<RecyclerView>(R.id.tool_option_recycler).also {
+    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
       it.adapter = adapter
       it.layoutManager = LinearLayoutManager(
         requireView().context,
@@ -178,10 +161,10 @@ class EditorFragment : Fragment(), View.OnClickListener {
   }
 
   private fun onRatioChange(ratio: Float) {
-    if (collageIsInitiated) {
+    if (collageFrame.height > 0) {
       collage.setRatio(ratio)
 
-      parentFrame.updateLayoutParams {
+      collageFrameParent.updateLayoutParams {
         this.width = ViewGroup.LayoutParams.WRAP_CONTENT
         this.height = ViewGroup.LayoutParams.WRAP_CONTENT
       }
@@ -191,7 +174,27 @@ class EditorFragment : Fragment(), View.OnClickListener {
 
   // ------------------------ BORDER ------------------------
 
+  private fun showColorsInRecycler() {
+    val adapter = ColorAdapter(requireView().context, rootView.width)
+
+    adapter.setColorClickedListener(object : ColorAdapter.ColorClickedListener {
+      override fun onColorClicked(color: Int) {
+        collage.isBorderEnabled = true
+        collage.setBorderColor(color)
+      }
+    })
+
+    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
+      it.adapter = adapter
+      it.layoutManager = LinearLayoutManager(
+        requireView().context,
+        LinearLayoutManager.HORIZONTAL,
+        false)
+    }
+  }
+
   private fun toggleBorder() {
+    showColorsInRecycler()
     collage.toggleBorder()
   }
 

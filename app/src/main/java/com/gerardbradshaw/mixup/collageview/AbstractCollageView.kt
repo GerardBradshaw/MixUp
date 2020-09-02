@@ -2,9 +2,11 @@ package com.gerardbradshaw.mixup.collageview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -80,6 +82,8 @@ abstract class AbstractCollageView(context: Context,
   /** The TaskRunner used to ensure the previous resize event has finished before the next is
    started. */
   private val resizeTaskRunner = TaskRunner()
+
+  private var borderColor = 0
 
 
   // ------------------------ INITIALIZATION ------------------------
@@ -166,14 +170,20 @@ abstract class AbstractCollageView(context: Context,
     isBorderEnabled = enableBorder
 
     if (isBorderEnabled) {
-      foreground = ContextCompat.getDrawable(context,
-        R.drawable.border_frame
-      )
+      val frameBorder = ContextCompat.getDrawable(context, R.drawable.border_frame)
+      val frameBorderThickness = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_DIP,
+        resources.getDimension(R.dimen.frame_border_thickness),
+        resources.displayMetrics).roundToInt()
+
+      (frameBorder?.mutate() as GradientDrawable).setStroke(frameBorderThickness, borderColor)
+      foreground = frameBorder
 
       for (image in imageViews) {
-        image.foreground = ContextCompat.getDrawable(context,
-          R.drawable.border_image
-        )
+        val imageBorder = ContextCompat.getDrawable(context, R.drawable.border_image)
+
+        (imageBorder?.mutate() as GradientDrawable).setStroke(2 * frameBorderThickness, borderColor)
+        image.foreground = imageBorder
       }
     }
     else {
@@ -189,6 +199,14 @@ abstract class AbstractCollageView(context: Context,
   fun toggleBorder() {
     isBorderEnabled = !isBorderEnabled
     enableBorder(isBorderEnabled)
+  }
+
+  fun setBorderColor(color: Int) {
+    borderColor = color
+
+    if (isFrameInflated && isBorderEnabled) {
+      enableBorder(true)
+    }
   }
 
   /** Sets the listener to be notified of image clicks. The View given in the OnClick() interface
