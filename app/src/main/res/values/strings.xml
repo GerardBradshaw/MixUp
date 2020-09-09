@@ -24,4 +24,7 @@
     <string name="aspect">Aspect</string>
     <string name="border">Border</string>
     <string name="action_save_to_gallery">Save to gallery</string>
+    <string name="color">Color</string>
+    <string name="shade">Shade</string>
+    <string name="tint">Tint</string>
 </resources>

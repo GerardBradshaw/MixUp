@@ -39,9 +39,15 @@
 
     <FrameLayout
         android:id="@+id/tool_popup_frame"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center">
+
+        <com.gerardbradshaw.mixup.colorsliderview.ColorSliderView
+            android:id="@+id/slide_view"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tool_popup_recycler"

@@ -41,7 +41,7 @@ class RatioListAdapter(context: Context, ratios: LinkedHashMap<String, Float>)
   }
 
   class RatioViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val textView = itemView.findViewById<TextView>(R.id.ratio_text_view)
+    val textView: TextView = itemView.findViewById(R.id.ratio_text_view)
   }
 
   interface RatioButtonClickedListener {

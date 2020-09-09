@@ -21,9 +21,10 @@ import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.collageview.AbstractCollageView
 import com.gerardbradshaw.mixup.collageview.CollageViewFactory
+import com.gerardbradshaw.mixup.colorsliderview.ColorSliderView
 import com.ortiz.touchview.TouchImageView
 
-class EditorFragment : Fragment(), View.OnClickListener {
+class EditorFragment : Fragment(), View.OnClickListener, ColorSliderView.ColorChangedListener {
 
   //@Inject lateinit var glideInstance: RequestManager
 
@@ -63,6 +64,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
     initOptionsButtons()
     showCollageTypesInRecycler()
     initCollage()
+    requireView().findViewById<ColorSliderView>(R.id.slide_view).setOnColorSelectedListener(this)
   }
 
   private fun initCollage() {
@@ -109,6 +111,14 @@ class EditorFragment : Fragment(), View.OnClickListener {
     }
   }
 
+  private fun setIsRecyclerVisible(visible: Boolean) {
+    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).visibility =
+      if (visible) View.VISIBLE else View.GONE
+
+    requireView().findViewById<ColorSliderView>(R.id.slide_view).visibility =
+      if (visible) View.GONE else View.VISIBLE
+  }
+
 
   // ------------------------ FINALIZATION ------------------------
 
@@ -136,6 +146,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
       it.adapter = adapter
       it.layoutManager =
         LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+      setIsRecyclerVisible(true)
     }
   }
 
@@ -157,6 +168,7 @@ class EditorFragment : Fragment(), View.OnClickListener {
         requireView().context,
         LinearLayoutManager.HORIZONTAL,
         false)
+      setIsRecyclerVisible(true)
     }
   }
 
@@ -175,22 +187,23 @@ class EditorFragment : Fragment(), View.OnClickListener {
   // ------------------------ BORDER ------------------------
 
   private fun showColorsInRecycler() {
-    val adapter = ColorAdapter(requireView().context, rootView.width)
+    setIsRecyclerVisible(false)
 
-    adapter.setColorClickedListener(object : ColorAdapter.ColorClickedListener {
-      override fun onColorClicked(color: Int) {
-        collage.isBorderEnabled = true
-        collage.setBorderColor(color)
-      }
-    })
-
-    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
-      it.adapter = adapter
-      it.layoutManager = LinearLayoutManager(
-        requireView().context,
-        LinearLayoutManager.HORIZONTAL,
-        false)
-    }
+//    val adapter = ColorAdapter(requireView().context, rootView.width)
+//
+//    adapter.setColorClickedListener(object : ColorAdapter.ColorClickedListener {
+//      override fun onColorClicked(color: Int) {
+//        collage.isBorderEnabled = true
+//        collage.setBorderColor(color)
+//      }
+//    })
+//    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
+//      it.adapter = adapter
+//      it.layoutManager = LinearLayoutManager(
+//        requireView().context,
+//        LinearLayoutManager.HORIZONTAL,
+//        false)
+//    }
   }
 
   private fun toggleBorder() {
@@ -198,6 +211,10 @@ class EditorFragment : Fragment(), View.OnClickListener {
     collage.toggleBorder()
   }
 
+  override fun onColorChanged(hexColor: Int) {
+    collage.isBorderEnabled = true
+    collage.setBorderColor(hexColor)
+  }
 
   // ------------------------ IMPORTING IMAGES ------------------------
 
