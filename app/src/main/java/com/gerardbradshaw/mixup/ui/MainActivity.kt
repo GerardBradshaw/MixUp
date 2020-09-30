@@ -15,7 +15,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.*
-import com.gerardbradshaw.mixup.utils.ImageUtil
+import com.gerardbradshaw.collageview.util.ImageUtil
 import com.gerardbradshaw.mixup.R
 import com.google.android.material.navigation.NavigationView
 
