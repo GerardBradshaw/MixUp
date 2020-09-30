@@ -16,21 +16,6 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="BaseTouchImageViewParams">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">0dp</item>
-        <item name="android:scaleType">center</item>
-        <item name="android:layout_rowWeight">1</item>
-        <item name="android:layout_columnWeight">1</item>
-        <item name="android:background">@android:color/white</item>
-    </style>
-
-    <style name="BaseFrameParams">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:background">@android:color/white</item>
-    </style>
-
     <style name="ToolButtonCard">
         <item name="android:foreground">?selectableItemBackground</item>
         <item name="android:clickable">true</item>

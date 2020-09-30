@@ -43,9 +43,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center">
 
-        <com.gerardbradshaw.mixup.colorsliderview.ColorSliderView
+        <com.gerardbradshaw.library.views.CompactColorPickerView
             android:id="@+id/slide_view"
             android:visibility="gone"
+            app:menuType="image"
+            app:enablePreview="false"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 

@@ -19,12 +19,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.collageview.views.AbstractCollageView
+import com.gerardbradshaw.library.views.AbstractColorPickerView
+import com.gerardbradshaw.library.views.CompactColorPickerView
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.colorsliderview.ColorSliderView
 import com.ortiz.touchview.TouchImageView
 
-class EditorFragment : Fragment(), View.OnClickListener, ColorSliderView.ColorChangedListener {
+class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView.ColorChangedListener {
 
   //@Inject lateinit var glideInstance: RequestManager
 
@@ -64,7 +65,7 @@ class EditorFragment : Fragment(), View.OnClickListener, ColorSliderView.ColorCh
     initOptionsButtons()
     showCollageTypesInRecycler()
     initCollage()
-    requireView().findViewById<ColorSliderView>(R.id.slide_view).setOnColorSelectedListener(this)
+    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).setOnColorSelectedListener(this)
   }
 
   private fun initCollage() {
@@ -115,7 +116,7 @@ class EditorFragment : Fragment(), View.OnClickListener, ColorSliderView.ColorCh
     requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).visibility =
       if (visible) View.VISIBLE else View.GONE
 
-    requireView().findViewById<ColorSliderView>(R.id.slide_view).visibility =
+    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).visibility =
       if (visible) View.GONE else View.VISIBLE
   }
 
