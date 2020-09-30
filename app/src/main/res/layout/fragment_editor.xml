@@ -40,19 +40,41 @@
     <FrameLayout
         android:id="@+id/tool_popup_frame"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/recycler_and_picker_height"
+        android:background="@android:color/white"
         android:layout_gravity="center">
 
-        <com.gerardbradshaw.library.views.CompactColorPickerView
-            android:id="@+id/slide_view"
+        <LinearLayout
+            android:id="@+id/color_picker_container"
             android:visibility="gone"
-            app:menuType="image"
-            app:enablePreview="false"
+            tools:visibility="visible"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <com.gerardbradshaw.library.views.CompactColorPickerView
+                android:id="@+id/slide_view"
+                android:layout_gravity="center"
+                app:menuType="image"
+                app:enablePreview="false"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/border_switch"
+                android:checked="true"
+                android:paddingEnd="8dp"
+                android:paddingStart="0dp"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tool_popup_recycler"
+            tools:visibility="invisible"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

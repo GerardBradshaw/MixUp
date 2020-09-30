@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
@@ -37,6 +39,8 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   private lateinit var collageFrame: FrameLayout
   private lateinit var collage: AbstractCollageView
 
+  private lateinit var borderSwitch: SwitchCompat
+
   private var lastImageClickedIndex: Int = -1
 
 
@@ -57,6 +61,7 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     rootView = view
 
     if (savedInstanceState == null || !savedInstanceState.getBoolean(IS_RETURN_SESSION)) {
+      Log.d(TAG, "onViewCreated: instance state data not restored (not implemented)")
       // TODO restore saved data
     }
 
@@ -64,8 +69,8 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
 
     initOptionsButtons()
     showCollageTypesInRecycler()
+    initBorderColorPicker()
     initCollage()
-    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).setOnColorSelectedListener(this)
   }
 
   private fun initCollage() {
@@ -112,11 +117,20 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     }
   }
 
-  private fun setIsRecyclerVisible(visible: Boolean) {
+  private fun initBorderColorPicker() {
+    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).setOnColorSelectedListener(this)
+
+    borderSwitch = requireView().findViewById(R.id.border_switch)
+    borderSwitch.setOnCheckedChangeListener { _, isChecked ->
+      collage.enableBorder(isChecked)
+    }
+  }
+
+  private fun setIsRecyclerVisibleAndColorPickerHidden(visible: Boolean) {
     requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).visibility =
       if (visible) View.VISIBLE else View.GONE
 
-    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).visibility =
+    requireView().findViewById<LinearLayout>(R.id.color_picker_container).visibility =
       if (visible) View.GONE else View.VISIBLE
   }
 
@@ -147,7 +161,7 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
       it.adapter = adapter
       it.layoutManager =
         LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-      setIsRecyclerVisible(true)
+      setIsRecyclerVisibleAndColorPickerHidden(true)
     }
   }
 
@@ -169,7 +183,7 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
         requireView().context,
         LinearLayoutManager.HORIZONTAL,
         false)
-      setIsRecyclerVisible(true)
+      setIsRecyclerVisibleAndColorPickerHidden(true)
     }
   }
 
@@ -188,33 +202,17 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   // ------------------------ BORDER ------------------------
 
   private fun showColorsInRecycler() {
-    setIsRecyclerVisible(false)
-
-//    val adapter = ColorAdapter(requireView().context, rootView.width)
-//
-//    adapter.setColorClickedListener(object : ColorAdapter.ColorClickedListener {
-//      override fun onColorClicked(color: Int) {
-//        collage.isBorderEnabled = true
-//        collage.setBorderColor(color)
-//      }
-//    })
-//    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
-//      it.adapter = adapter
-//      it.layoutManager = LinearLayoutManager(
-//        requireView().context,
-//        LinearLayoutManager.HORIZONTAL,
-//        false)
-//    }
+    setIsRecyclerVisibleAndColorPickerHidden(false)
   }
 
-  private fun toggleBorder() {
+  private fun showBorderOptions() {
     showColorsInRecycler()
-    collage.toggleBorder()
   }
 
-  override fun onColorChanged(hexColor: Int) {
+  override fun onColorChanged(color: Int) {
     collage.isBorderEnabled = true
-    collage.setBorderColor(hexColor)
+    if (!borderSwitch.isChecked) borderSwitch.isChecked = true
+    collage.setBorderColor(color)
   }
 
   // ------------------------ IMPORTING IMAGES ------------------------
@@ -258,7 +256,7 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     when (view?.id) {
       R.id.button_frame -> showCollageTypesInRecycler()
       R.id.button_aspect -> showAspectRatiosInRecycler()
-      R.id.button_toggle_border -> toggleBorder()
+      R.id.button_toggle_border -> showBorderOptions()
     }
   }
 
