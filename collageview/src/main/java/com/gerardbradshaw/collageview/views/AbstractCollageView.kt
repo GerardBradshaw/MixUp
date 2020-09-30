@@ -1,4 +1,4 @@
-package com.gerardbradshaw.mixup.collageview
+package com.gerardbradshaw.collageview.views
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -14,9 +14,9 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.utils.ImageParams
-import com.gerardbradshaw.mixup.utils.TaskRunner
+import com.gerardbradshaw.collageview.R
+import com.gerardbradshaw.collageview.util.ImageParams
+import com.gerardbradshaw.collageview.util.TaskRunner
 import com.ortiz.touchview.TouchImageView
 import java.util.*
 import kotlin.math.roundToInt

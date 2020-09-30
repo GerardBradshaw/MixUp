@@ -17,10 +17,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.gerardbradshaw.collageview.CollageViewFactory
+import com.gerardbradshaw.collageview.views.AbstractCollageView
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.collageview.AbstractCollageView
-import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import com.gerardbradshaw.mixup.colorsliderview.ColorSliderView
 import com.ortiz.touchview.TouchImageView
 
@@ -70,7 +70,7 @@ class EditorFragment : Fragment(), View.OnClickListener, ColorSliderView.ColorCh
   private fun initCollage() {
     collageFrameParent = rootView.findViewById(R.id.parent_frame)
 
-    collageFrame = rootView.findViewById(R.id.collage_frame)
+    collageFrame = rootView.findViewById(R.id.collage_container)
 
     collageFrame.viewTreeObserver.addOnGlobalLayoutListener(
       object : ViewTreeObserver.OnGlobalLayoutListener {

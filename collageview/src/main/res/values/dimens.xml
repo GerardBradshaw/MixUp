@@ -1,0 +1,3 @@
+<resources>
+    <dimen name="frame_border_thickness">2dp</dimen>
+</resources>

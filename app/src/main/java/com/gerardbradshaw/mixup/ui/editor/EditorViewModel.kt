@@ -4,8 +4,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import java.util.LinkedHashMap
 
 class EditorViewModel : ViewModel() {

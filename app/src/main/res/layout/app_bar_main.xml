@@ -24,7 +24,7 @@
     <include layout="@layout/content_main" />
 
     <FrameLayout
-        android:id="@+id/progress_bar_frame"
+        android:id="@+id/progress_bar_container"
         android:visibility="gone"
         android:background="@color/cardview_shadow_start_color"
         android:layout_width="match_parent"

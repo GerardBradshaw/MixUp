@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.mixup.R
-import com.gerardbradshaw.mixup.collageview.CollageViewFactory
 import java.util.LinkedHashMap
 
 class CollageTypeListAdapter(context: Context, frames: LinkedHashMap<Int, CollageViewFactory.CollageType>) :

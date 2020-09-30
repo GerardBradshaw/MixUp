@@ -15,15 +15,25 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.*
-import com.gerardbradshaw.mixup.utils.ImageUtils
+import com.gerardbradshaw.mixup.utils.ImageUtil
 import com.gerardbradshaw.mixup.R
 import com.google.android.material.navigation.NavigationView
 
-class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
+class MainActivity :
+  AppCompatActivity(),
+  ImageUtil.ImageSavedListener,
   NavController.OnDestinationChangedListener {
+
+  // -------------------- PROPERTIES --------------------
 
   private lateinit var appBarConfig: AppBarConfiguration
   private var menu: Menu? = null
+  private var collageContainer: FrameLayout? = null
+  private var progressBarContainer: FrameLayout? = null
+
+
+
+  // -------------------- INIT --------------------
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -37,7 +47,10 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
 
   private fun initUi() {
     setSupportActionBar(findViewById(R.id.editor_toolbar))
+    initNavigation()
+  }
 
+  private fun initNavigation() {
     appBarConfig = AppBarConfiguration(
       setOf(R.id.nav_editor, R.id.nav_more_apps),
       findViewById<DrawerLayout>(R.id.drawer_layout))
@@ -49,37 +62,52 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
     }
   }
 
+
+
+  // -------------------- NAVIGATION --------------------
+
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
     this.menu = menu
     menuInflater.inflate(R.menu.main_options_menu, menu)
     return super.onCreateOptionsMenu(menu)
   }
 
-  override fun onOptionsItemSelected(item: MenuItem): Boolean {
-    when (item.itemId) {
-      R.id.action_share -> return shareImage()
-      R.id.action_save -> return saveImageToGallery()
-      R.id.action_reset -> return resetImage()
-    }
-    return false
+  override fun onDestinationChanged(controller: NavController, dest: NavDestination, args: Bundle?) {
+    val showOptionsMenu = dest.id != R.id.nav_more_apps
+    menu?.setGroupVisible(R.id.main_options_menu_group, showOptionsMenu)
   }
 
-  private fun shareImage(): Boolean {
-    val view = findViewById<FrameLayout>(R.id.collage_frame)
-
-    if (view != null) {
-      findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.VISIBLE
-      ImageUtils(this, this).prepareViewForSharing(view)
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    when (item.itemId) {
+      R.id.action_share -> shareImage()
+      R.id.action_save -> saveCollageToGallery()
+      R.id.action_reset -> resetImage()
+      else -> return false
     }
-    else toastErrorAndLog("Share failed. Unable to located image container.")
     return true
   }
 
+  override fun onSupportNavigateUp(): Boolean {
+    val navController = findNavController(R.id.nav_host_fragment)
+    return navController.navigateUp(appBarConfig) || super.onSupportNavigateUp()
+  }
+
+
+
+  // -------------------- SHARE COLLAGE --------------------
+
+  private fun shareImage() {
+    setProgressBarVisibility(View.VISIBLE)
+
+    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
+    ImageUtil.prepareViewForSharing(this, collageContainer!!, this)
+  }
+
   override fun onReadyToShareImage(uri: Uri?) {
-    findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.GONE
+    setProgressBarVisibility(View.GONE)
 
     if (uri != null) startShareIntent(uri)
-    else toastErrorAndLog("Share failed.")
+    else toastErrorAndLog("Unable to share.", "Unable to share!")
   }
 
   private fun startShareIntent(uri: Uri?) {
@@ -92,42 +120,45 @@ class MainActivity : AppCompatActivity(), ImageUtils.ImageSavedListener,
     startActivity(Intent.createChooser(shareIntent, "Share to..."))
   }
 
-  private fun saveImageToGallery(): Boolean {
-    val view = findViewById<FrameLayout>(R.id.collage_frame)
 
-    if (view != null) {
-      findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.VISIBLE
-      ImageUtils(this, this).saveViewToGallery(view)
+
+  // -------------------- SAVE COLLAGE --------------------
+
+  private fun saveCollageToGallery() {
+    setProgressBarVisibility(View.VISIBLE)
+
+    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
+    ImageUtil.saveViewToGallery(this, collageContainer!!, this)
+  }
+
+  override fun onCollageSavedToGallery(isSavedSuccessfully: Boolean) {
+    setProgressBarVisibility(View.GONE)
+
+    if (isSavedSuccessfully) {
+      Toast.makeText(this, "Saved to gallery!", Toast.LENGTH_LONG).show()
     }
-    else toastErrorAndLog("Save failed. Unable to located image container.")
-    return true
+    else toastErrorAndLog("Write to gallery failed.", "Unable to save :(")
   }
 
-  override fun onImageSavedToGallery(isSuccess: Boolean) {
-    findViewById<FrameLayout>(R.id.progress_bar_frame).visibility = View.GONE
 
-    if (isSuccess) Toast.makeText(this, "Saved to gallery!", Toast.LENGTH_SHORT).show()
-    else toastErrorAndLog("Write to gallery failed.", "Not saved.")
-  }
 
-  private fun resetImage(): Boolean {
+  // -------------------- UTIL --------------------
+
+  private fun resetImage() {
     findNavController(R.id.nav_host_fragment).navigate(R.id.nav_editor)
-    return true
   }
 
-  override fun onSupportNavigateUp(): Boolean {
-    val navController = findNavController(R.id.nav_host_fragment)
-    return navController.navigateUp(appBarConfig) || super.onSupportNavigateUp()
+  private fun setProgressBarVisibility(visibility: Int) {
+    if (progressBarContainer == null) {
+      progressBarContainer = findViewById(R.id.progress_bar_container)
+    }
+
+    progressBarContainer?.visibility = visibility
   }
 
   private fun toastErrorAndLog(logMsg: String, toastMsg: String = "Something went wrong :(") {
     Log.d(TAG, logMsg)
-    Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show()
-  }
-
-  override fun onDestinationChanged(controller: NavController, dest: NavDestination, args: Bundle?) {
-    val showOptionsMenu = dest.id != R.id.nav_more_apps
-    menu?.setGroupVisible(R.id.main_options_menu_group, showOptionsMenu)
+    Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
   }
 
   companion object {

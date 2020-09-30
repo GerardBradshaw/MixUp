@@ -27,7 +27,7 @@
                 android:layout_margin="@dimen/image_init_margin">
 
                 <FrameLayout
-                    android:id="@+id/collage_frame"
+                    android:id="@+id/collage_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center">

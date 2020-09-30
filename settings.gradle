@@ -1,2 +1,3 @@
+include ':collageview'
 include ':app'
 rootProject.name = "Mix Up"
