@@ -2,7 +2,6 @@ package com.gerardbradshaw.mixup.ui.editor
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -29,8 +28,6 @@ import com.ortiz.touchview.TouchImageView
 
 class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView.ColorChangedListener {
 
-  //@Inject lateinit var glideInstance: RequestManager
-
   private lateinit var rootView: View
   private lateinit var viewModel: EditorViewModel
   private lateinit var collageViewFactory: CollageViewFactory
@@ -39,9 +36,12 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   private lateinit var collageFrame: FrameLayout
   private lateinit var collage: AbstractCollageView
 
+  private lateinit var recyclerView: RecyclerView
+  private lateinit var colorPickerContainer: LinearLayout
   private lateinit var borderSwitch: SwitchCompat
 
   private var lastImageClickedIndex: Int = -1
+
 
 
   // ------------------------ INITIALIZATION ------------------------
@@ -60,17 +60,19 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     viewModel = ViewModelProvider(this).get(EditorViewModel::class.java)
     rootView = view
 
-    if (savedInstanceState == null || !savedInstanceState.getBoolean(IS_RETURN_SESSION)) {
-      Log.d(TAG, "onViewCreated: instance state data not restored (not implemented)")
-      // TODO restore saved data
-    }
+    initOptionsButtons()
+    initTools()
+    initCollage()
+    initBorderColorPicker()
 
     viewModel.canvasRatio.observe(requireActivity(), Observer { onRatioChange(it) })
+  }
 
-    initOptionsButtons()
+  private fun initTools() {
+    recyclerView = requireView().findViewById(R.id.tool_popup_recycler)
+    colorPickerContainer = requireView().findViewById(R.id.color_picker_container)
+
     showCollageTypesInRecycler()
-    initBorderColorPicker()
-    initCollage()
   }
 
   private fun initCollage() {
@@ -91,14 +93,6 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
       })
   }
 
-  private fun initDefaultCollage() {
-    collage = collageViewFactory.getCollage(CollageViewFactory.CollageType.THREE_IMAGE_2)
-
-    collageFrame.addView(collage)
-
-    collage.setImageClickListener(this)
-  }
-
   private fun initCollageViewFactory() {
     collageViewFactory = CollageViewFactory(
       context = rootView.context,
@@ -107,6 +101,14 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
       layoutHeight = collageFrame.height,
       isBorderEnabled = false,
       imageUris = viewModel.imageUris)
+  }
+
+  private fun initDefaultCollage() {
+    collage = collageViewFactory.getCollage(CollageViewFactory.CollageType.THREE_IMAGE_2)
+
+    collageFrame.addView(collage)
+
+    collage.setImageClickListener(this)
   }
 
   private fun initOptionsButtons() {
@@ -118,29 +120,27 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   }
 
   private fun initBorderColorPicker() {
-    requireView().findViewById<CompactColorPickerView>(R.id.slide_view).setOnColorSelectedListener(this)
+    val colorPicker: CompactColorPickerView = requireView().findViewById(R.id.slide_view)
+    colorPicker.setOnColorSelectedListener(this)
 
     borderSwitch = requireView().findViewById(R.id.border_switch)
     borderSwitch.setOnCheckedChangeListener { _, isChecked ->
       collage.enableBorder(isChecked)
+      collage.setBorderColor(colorPicker.getCurrentColor())
     }
   }
 
-  private fun setIsRecyclerVisibleAndColorPickerHidden(visible: Boolean) {
-    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).visibility =
-      if (visible) View.VISIBLE else View.GONE
-
-    requireView().findViewById<LinearLayout>(R.id.color_picker_container).visibility =
-      if (visible) View.GONE else View.VISIBLE
+  private fun setIsColorPickerHidden(hideColorPicker: Boolean) {
+    if (hideColorPicker) {
+      colorPickerContainer.visibility = View.GONE
+      recyclerView.visibility = View.VISIBLE
+    }
+    else {
+      colorPickerContainer.visibility = View.VISIBLE
+      recyclerView.visibility = View.GONE
+    }
   }
 
-
-  // ------------------------ FINALIZATION ------------------------
-
-  override fun onSaveInstanceState(outState: Bundle) {
-    outState.putBoolean(IS_RETURN_SESSION, true)
-    super.onSaveInstanceState(outState)
-  }
 
 
   // ------------------------ COLLAGE VIEWS ------------------------
@@ -150,20 +150,25 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
 
     adapter.setCollageTypeClickedListener(object : CollageTypeListAdapter.TypeClickedListener {
       override fun onCollageTypeClicked(collageType: CollageViewFactory.CollageType) {
-        collage = collageViewFactory.getCollage(collageType)
-        collageFrame.removeAllViews()
-        collageFrame.addView(collage)
-        collage.setImageClickListener(this@EditorFragment)
+        onNewCollageTypeSelected(collageType)
       }
     })
 
-    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
-      it.adapter = adapter
-      it.layoutManager =
-        LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-      setIsRecyclerVisibleAndColorPickerHidden(true)
-    }
+    recyclerView.adapter = adapter
+
+    recyclerView.layoutManager = LinearLayoutManager(
+      requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+    setIsColorPickerHidden(true)
   }
+
+  private fun onNewCollageTypeSelected(collageType: CollageViewFactory.CollageType) {
+    collage = collageViewFactory.getCollage(collageType)
+    collageFrame.removeAllViews()
+    collageFrame.addView(collage)
+    collage.setImageClickListener(this@EditorFragment)
+  }
+
 
 
   // ------------------------ RATIOS ------------------------
@@ -177,14 +182,12 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
       }
     })
 
-    requireView().findViewById<RecyclerView>(R.id.tool_popup_recycler).also {
-      it.adapter = adapter
-      it.layoutManager = LinearLayoutManager(
-        requireView().context,
-        LinearLayoutManager.HORIZONTAL,
-        false)
-      setIsRecyclerVisibleAndColorPickerHidden(true)
-    }
+    recyclerView.adapter = adapter
+
+    recyclerView.layoutManager = LinearLayoutManager(
+      requireView().context, LinearLayoutManager.HORIZONTAL, false)
+
+    setIsColorPickerHidden(true)
   }
 
   private fun onRatioChange(ratio: Float) {
@@ -199,14 +202,11 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   }
 
 
+
   // ------------------------ BORDER ------------------------
 
-  private fun showColorsInRecycler() {
-    setIsRecyclerVisibleAndColorPickerHidden(false)
-  }
-
   private fun showBorderOptions() {
-    showColorsInRecycler()
+    setIsColorPickerHidden(false)
   }
 
   override fun onColorChanged(color: Int) {
@@ -214,6 +214,8 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     if (!borderSwitch.isChecked) borderSwitch.isChecked = true
     collage.setBorderColor(color)
   }
+
+
 
   // ------------------------ IMPORTING IMAGES ------------------------
 
@@ -243,10 +245,6 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
   }
 
-  private fun loadImageIntoCollage(uri: Uri?, position: Int) {
-    collage.setImageAt(position, uri)
-  }
-
   override fun onClick(view: View?) {
     if (view is TouchImageView) {
       lastImageClickedIndex = collage.indexOfChild(view)
@@ -263,6 +261,5 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   companion object {
     private const val TAG = "EditorFragment"
     private const val REQUEST_IMAGE_IMPORT_CODE = 1000
-    private const val IS_RETURN_SESSION = "is_continuing"
   }
 }

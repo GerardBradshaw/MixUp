@@ -216,6 +216,15 @@ abstract class AbstractCollageView(context: Context,
     for (image in imageViews) image.setOnClickListener(listener)
   }
 
+  fun reset() {
+    for (i in 0 until imageCount) {
+      setImageAt(i, null)
+    }
+
+    setRatio(1f)
+    enableBorder(false)
+  }
+
 
   // ------------------------ COLLAGE VIEW INSTANCE METHODS ------------------------
 
