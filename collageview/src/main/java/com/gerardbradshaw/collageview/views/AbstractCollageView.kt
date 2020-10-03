@@ -2,6 +2,7 @@ package com.gerardbradshaw.collageview.views
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.util.AttributeSet
@@ -36,8 +37,8 @@ abstract class AbstractCollageView(context: Context,
 
   // ------------------------ COLLAGE VIEW INSTANCE PROPERTIES ------------------------
 
-  /** True if the frame in the inheriting class has been inflated. */
-  protected var isFrameInflated = false
+  /** True if the layout in the inheriting class has been inflated. */
+  protected var isLayoutInflated = false
 
   /** A list of TouchImageViews in the inheriting class. */
   protected val imageViews: List<TouchImageView> = List(imageCount) {
@@ -45,7 +46,7 @@ abstract class AbstractCollageView(context: Context,
   }
 
   /** The height, width, x and y positions of each image in the view. */
-  protected val imageParamsCache = Array(imageCount) {
+  protected var imageParamsCache = Array(imageCount) {
     ImageParams()
   }
 
@@ -117,6 +118,7 @@ abstract class AbstractCollageView(context: Context,
         imageViews[index].apply {
           this.scaleType = ImageView.ScaleType.CENTER_INSIDE
           this.isZoomEnabled = false
+          this.setBackgroundColor(Color.WHITE)
 
           Glide.with(context)
             .load(R.drawable.img_tap_to_add_photo)
@@ -129,7 +131,7 @@ abstract class AbstractCollageView(context: Context,
   }
 
   /** Resize the View to the specified dimensions. */
-  fun resize(newWidth: Int, newHeight: Int) {
+  private fun resize(newWidth: Int, newHeight: Int) {
     if (layoutParams == null) {
       layoutParams = LayoutParams(newWidth, newHeight)
     }
@@ -150,18 +152,26 @@ abstract class AbstractCollageView(context: Context,
     scaleViews(newXScale / currentXScale, newYScale / currentYScale)
   }
 
-  fun setRatio(ratio: Float) {
-    if (isFrameInflated) {
-      val shouldAdjustHeight = initialLayoutHeight > initialLayoutWidth / ratio
+  /** The last aspect ratio set (null if no specific ratio has been set).  */
+  var aspectRatio: Float? = null
+  set(value) {
+    field = value
 
-      if (shouldAdjustHeight) {
-        resize(initialLayoutWidth, (initialLayoutWidth.toFloat() / ratio).toInt())
-      }
-      else {
-        resize((initialLayoutHeight.toFloat() * ratio).toInt(), initialLayoutHeight)
-      }
+    if (value == null) {
+      resize(initialLayoutWidth, initialLayoutHeight)
+      return
     }
-    else Log.d(TAG, "setRatio: could not set ratio because the frame was not inflated.")
+
+    if (!isLayoutInflated) {
+      Log.d(TAG, "setAspectRatio: could not set ratio because the collage layout was not inflated.")
+      return
+    }
+
+    val shouldAdjustHeight = initialLayoutHeight > initialLayoutWidth / value
+
+    if (shouldAdjustHeight) resize(initialLayoutWidth, (initialLayoutWidth.toFloat() / value).toInt())
+    else resize((initialLayoutHeight.toFloat() * value).toInt(), initialLayoutHeight)
+
   }
 
   /** Enables the border if [enableBorder] is true, otherwise the border is disabled. */
@@ -173,7 +183,7 @@ abstract class AbstractCollageView(context: Context,
       val frameBorder = ContextCompat.getDrawable(context, R.drawable.border_frame)
       val frameBorderThickness = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_DIP,
-        resources.getDimension(R.dimen.frame_border_thickness),
+        resources.getDimension(R.dimen.collage_layout_border_thickness),
         resources.displayMetrics).roundToInt()
 
       (frameBorder?.mutate() as GradientDrawable).setStroke(2 * frameBorderThickness, borderColor)
@@ -204,7 +214,7 @@ abstract class AbstractCollageView(context: Context,
   fun setBorderColor(color: Int) {
     borderColor = color
 
-    if (isFrameInflated && isBorderEnabled) {
+    if (isLayoutInflated && isBorderEnabled) {
       enableBorder(true)
     }
   }
@@ -221,8 +231,9 @@ abstract class AbstractCollageView(context: Context,
       setImageAt(i, null)
     }
 
-    setRatio(1f)
+    aspectRatio = initialLayoutWidth.toFloat() / initialLayoutHeight.toFloat()
     enableBorder(false)
+    initImageLayout()
   }
 
 
@@ -422,6 +433,8 @@ abstract class AbstractCollageView(context: Context,
     }
     syncLayoutWithParamCache()
   }
+
+  protected abstract fun initImageLayout()
 
   private fun addResizeRunnableToQueueAndRun(
     event: MotionEvent, touchRawX: Float, touchRawY: Float,

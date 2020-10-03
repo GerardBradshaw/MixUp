@@ -17,6 +17,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
@@ -91,12 +92,12 @@ object ImageUtil {
 
   private suspend fun saveBitmapToGalleryAndNotifyListener(context: Context, bitmap: Bitmap, listener: ImageSavedListener) {
     withContext(IO) {
-      val isSavedSuccessfully = saveBitmapToGallery(context, bitmap)
-      notifyListenerOfImageSavedToGalleryResult(listener, isSavedSuccessfully)
+      val uri = saveBitmapToGallery(context, bitmap)
+      notifyListenerOfImageSavedToGalleryResult(listener, uri)
     }
   }
 
-  private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Boolean {
+  private fun saveBitmapToGallery(context: Context, bitmap: Bitmap): Uri? {
     val folderName = "MixUp"
 
     return if (android.os.Build.VERSION.SDK_INT >= 29) {
@@ -108,7 +109,7 @@ object ImageUtil {
   }
 
   @RequiresApi(29)
-  private fun saveBitmapToGalleryAndroidQ(context: Context, bitmap: Bitmap, filename: String, folderName: String): Boolean {
+  private fun saveBitmapToGalleryAndroidQ(context: Context, bitmap: Bitmap, filename: String, folderName: String): Uri? {
     val contentValues = getContentValues(filename).apply {
       put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/$folderName")
       put(MediaStore.Images.Media.IS_PENDING, true)
@@ -117,21 +118,21 @@ object ImageUtil {
 
     val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
+    var isSavedSuccessfully = false
+
     if (uri != null) {
-      val isSavedSuccessfully = saveImageToStream(bitmap, context.contentResolver.openOutputStream(uri))
+      isSavedSuccessfully = saveImageToStream(bitmap, context.contentResolver.openOutputStream(uri))
 
       contentValues.put(MediaStore.Images.Media.IS_PENDING, false)
       context.contentResolver.update(uri, contentValues, null, null)
-
-      return isSavedSuccessfully
     }
 
-    return false
+    return if (isSavedSuccessfully) uri else null
   }
 
   @Suppress("DEPRECATION")
   @TargetApi(21)
-  private fun saveBitmapToGalleryAndroidM(context: Context, bitmap: Bitmap, filename: String, folderName: String): Boolean {
+  private fun saveBitmapToGalleryAndroidM(context: Context, bitmap: Bitmap, filename: String, folderName: String): Uri? {
     val directory = File(Environment.getExternalStorageDirectory().toString() + "/" + folderName)
 
     if (!directory.exists()) directory.mkdirs()
@@ -143,12 +144,12 @@ object ImageUtil {
     values.put(MediaStore.Images.Media.DATA, file.absolutePath)
     context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
-    return isSavedSuccessfully
+    return if (isSavedSuccessfully) file.toUri() else null
   }
 
-  private suspend fun notifyListenerOfImageSavedToGalleryResult(listener: ImageSavedListener, isSavedSuccessfully: Boolean) {
+  private suspend fun notifyListenerOfImageSavedToGalleryResult(listener: ImageSavedListener, uri: Uri?) {
     withContext(Main) {
-      listener.onCollageSavedToGallery(isSavedSuccessfully)
+      listener.onCollageSavedToGallery(uri != null, uri)
     }
   }
 
@@ -230,7 +231,7 @@ object ImageUtil {
 
       if (activity.checkSelfPermission(requiredPermission) == PackageManager.PERMISSION_DENIED) {
         Log.d(TAG, "Save to gallery failed. Permission denied.")
-        listener.onCollageSavedToGallery(false)
+        listener.onCollageSavedToGallery(false, null)
         return false
       }
     }
@@ -241,7 +242,7 @@ object ImageUtil {
   // -------------------- INTERFACE --------------------
 
   interface ImageSavedListener {
-    fun onCollageSavedToGallery(isSavedSuccessfully: Boolean)
+    fun onCollageSavedToGallery(isSaveSuccessful: Boolean, uri: Uri?)
     fun onReadyToShareImage(uri: Uri?)
   }
 }

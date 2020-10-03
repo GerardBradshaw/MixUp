@@ -31,14 +31,14 @@ class CollageView4Image1(context: Context, attrs: AttributeSet?,
           prepareTouchListeners()
           enableBorder(isBorderEnabled)
 
-          isFrameInflated = true
+          isLayoutInflated = true
           viewTreeObserver.removeOnGlobalLayoutListener(this)
         }
       }
     })
   }
 
-  private fun initImageLayout() {
+  override fun initImageLayout() {
     imageParamsCache[0] = ImageParams(
       width = layoutWidth / 2f,
       height = layoutHeight / 3f,

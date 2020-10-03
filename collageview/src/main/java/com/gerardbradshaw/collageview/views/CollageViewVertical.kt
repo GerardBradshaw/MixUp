@@ -30,14 +30,14 @@ class CollageViewVertical(context: Context, attrs: AttributeSet?, imageCount: In
           prepareTouchListeners()
           enableBorder(isBorderEnabled)
 
-          isFrameInflated = true
+          isLayoutInflated = true
           viewTreeObserver.removeOnGlobalLayoutListener(this)
         }
       }
     })
   }
 
-  private fun initImageLayout() {
+  override fun initImageLayout() {
     val height = layoutHeight.toFloat() / imageCount().toFloat()
 
     for (i in imageViews.indices) {
