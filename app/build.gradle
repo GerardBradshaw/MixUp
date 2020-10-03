@@ -24,12 +24,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 }
 
@@ -82,7 +84,12 @@ dependencies {
 
     // -------- ANDROID TESTS --------
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-contrib:$rootProject.espresso_version"
+    androidTestImplementation "androidx.navigation:navigation-testing:$rootProject.navigation_version"
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'androidx.fragment:fragment-testing:1.2.5'
+
 
 
     // -------- ANNOTATIONS --------

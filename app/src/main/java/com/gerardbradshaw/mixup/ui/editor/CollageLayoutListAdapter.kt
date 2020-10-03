@@ -10,16 +10,16 @@ import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.mixup.R
 import java.util.LinkedHashMap
 
-class CollageTypeListAdapter(context: Context, frames: LinkedHashMap<Int, CollageViewFactory.CollageType>) :
-  RecyclerView.Adapter<CollageTypeListAdapter.IconViewHolder>() {
+class CollageLayoutListAdapter(context: Context, layouts: LinkedHashMap<Int, CollageViewFactory.CollageLayoutType>) :
+  RecyclerView.Adapter<CollageLayoutListAdapter.IconViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
-  private val iconResIds = frames.keys.toList()
-  private var collageTypes = frames.values.toList()
+  private val iconResIds = layouts.keys.toList()
+  private var collageLayoutTypes = layouts.values.toList()
   private var listener: TypeClickedListener? = null
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IconViewHolder {
-    val itemView = inflater.inflate(R.layout.list_item_frame, parent, false)
+    val itemView = inflater.inflate(R.layout.list_item_collage_layout, parent, false)
     return IconViewHolder(itemView)
   }
 
@@ -31,7 +31,7 @@ class CollageTypeListAdapter(context: Context, frames: LinkedHashMap<Int, Collag
     holder.image.setImageResource(iconResIds[position])
 
     holder.itemView.setOnClickListener {
-      if (listener != null) listener!!.onCollageTypeClicked(collageTypes[position])
+      if (listener != null) listener!!.onLayoutTypeClicked(collageLayoutTypes[position])
     }
   }
 
@@ -40,7 +40,7 @@ class CollageTypeListAdapter(context: Context, frames: LinkedHashMap<Int, Collag
   }
 
   interface TypeClickedListener {
-    fun onCollageTypeClicked(collageType: CollageViewFactory.CollageType)
+    fun onLayoutTypeClicked(collageLayoutType: CollageViewFactory.CollageLayoutType)
   }
 
   fun setCollageTypeClickedListener(listener: TypeClickedListener) {

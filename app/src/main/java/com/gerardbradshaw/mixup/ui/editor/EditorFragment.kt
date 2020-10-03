@@ -32,9 +32,9 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   private lateinit var viewModel: EditorViewModel
   private lateinit var collageViewFactory: CollageViewFactory
 
-  private lateinit var collageFrameParent: FrameLayout
-  private lateinit var collageFrame: FrameLayout
-  private lateinit var collage: AbstractCollageView
+  private lateinit var collageViewContainerParent: FrameLayout
+  private lateinit var collageViewContainer: FrameLayout
+  private lateinit var collageView: AbstractCollageView
 
   private lateinit var recyclerView: RecyclerView
   private lateinit var colorPickerContainer: LinearLayout
@@ -65,29 +65,29 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     initCollage()
     initBorderColorPicker()
 
-    viewModel.canvasRatio.observe(requireActivity(), Observer { onRatioChange(it) })
+    viewModel.canvasAspectRatio.observe(requireActivity(), Observer { onAspectRatioChange(it) })
   }
 
   private fun initTools() {
     recyclerView = requireView().findViewById(R.id.tool_popup_recycler)
     colorPickerContainer = requireView().findViewById(R.id.color_picker_container)
 
-    showCollageTypesInRecycler()
+    showCollageLayoutsInRecycler()
   }
 
   private fun initCollage() {
-    collageFrameParent = rootView.findViewById(R.id.parent_frame)
+    collageViewContainerParent = rootView.findViewById(R.id.collage_container_parent)
 
-    collageFrame = rootView.findViewById(R.id.collage_container)
+    collageViewContainer = rootView.findViewById(R.id.collage_container)
 
-    collageFrame.viewTreeObserver.addOnGlobalLayoutListener(
+    collageViewContainer.viewTreeObserver.addOnGlobalLayoutListener(
       object : ViewTreeObserver.OnGlobalLayoutListener {
         override fun onGlobalLayout() {
-          if (collageFrame.height > 0) {
+          if (collageViewContainer.height > 0) {
             initCollageViewFactory()
-            initDefaultCollage()
+            initDefaultCollageView()
 
-            collageFrame.viewTreeObserver.removeOnGlobalLayoutListener(this)
+            collageViewContainer.viewTreeObserver.removeOnGlobalLayoutListener(this)
           }
         }
       })
@@ -97,24 +97,24 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     collageViewFactory = CollageViewFactory(
       context = rootView.context,
       attrs = null,
-      layoutWidth = collageFrame.width,
-      layoutHeight = collageFrame.height,
+      layoutWidth = collageViewContainer.width,
+      layoutHeight = collageViewContainer.height,
       isBorderEnabled = false,
       imageUris = viewModel.imageUris)
   }
 
-  private fun initDefaultCollage() {
-    collage = collageViewFactory.getCollage(CollageViewFactory.CollageType.THREE_IMAGE_2)
+  private fun initDefaultCollageView() {
+    collageView = collageViewFactory.getView(CollageViewFactory.CollageLayoutType.THREE_IMAGE_2)
 
-    collageFrame.addView(collage)
+    collageViewContainer.addView(collageView)
 
-    collage.setImageClickListener(this)
+    collageView.setImageClickListener(this)
   }
 
   private fun initOptionsButtons() {
     requireView().also {
-      it.findViewById<CardView>(R.id.button_frame).setOnClickListener(this)
-      it.findViewById<CardView>(R.id.button_aspect).setOnClickListener(this)
+      it.findViewById<CardView>(R.id.button_layout).setOnClickListener(this)
+      it.findViewById<CardView>(R.id.button_aspect_ratio).setOnClickListener(this)
       it.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener(this)
     }
   }
@@ -125,8 +125,8 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
 
     borderSwitch = requireView().findViewById(R.id.border_switch)
     borderSwitch.setOnCheckedChangeListener { _, isChecked ->
-      collage.enableBorder(isChecked)
-      collage.setBorderColor(colorPicker.getCurrentColor())
+      collageView.enableBorder(isChecked)
+      collageView.setBorderColor(colorPicker.getCurrentColor())
     }
   }
 
@@ -143,14 +143,14 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
 
 
 
-  // ------------------------ COLLAGE VIEWS ------------------------
+  // ------------------------ COLLAGE ------------------------
 
-  private fun showCollageTypesInRecycler() {
-    val adapter = CollageTypeListAdapter(requireContext(), viewModel.collageIconIdToType)
+  private fun showCollageLayoutsInRecycler() {
+    val adapter = CollageLayoutListAdapter(requireContext(), viewModel.collageIconIdToType)
 
-    adapter.setCollageTypeClickedListener(object : CollageTypeListAdapter.TypeClickedListener {
-      override fun onCollageTypeClicked(collageType: CollageViewFactory.CollageType) {
-        onNewCollageTypeSelected(collageType)
+    adapter.setCollageTypeClickedListener(object : CollageLayoutListAdapter.TypeClickedListener {
+      override fun onLayoutTypeClicked(collageLayoutType: CollageViewFactory.CollageLayoutType) {
+        onNewCollageTypeSelected(collageLayoutType)
       }
     })
 
@@ -162,23 +162,29 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     setIsColorPickerHidden(true)
   }
 
-  private fun onNewCollageTypeSelected(collageType: CollageViewFactory.CollageType) {
-    collage = collageViewFactory.getCollage(collageType)
-    collageFrame.removeAllViews()
-    collageFrame.addView(collage)
-    collage.setImageClickListener(this@EditorFragment)
+  private fun onNewCollageTypeSelected(collageLayoutType: CollageViewFactory.CollageLayoutType) {
+    collageView = collageViewFactory.getView(collageLayoutType)
+    collageViewContainer.removeAllViews()
+    collageViewContainer.addView(collageView)
+    collageView.setImageClickListener(this@EditorFragment)
+  }
+
+  fun reset() {
+    viewModel.resetImageUris()
+    collageView.reset()
+    borderSwitch.isChecked = false
   }
 
 
 
-  // ------------------------ RATIOS ------------------------
+  // ------------------------ ASPECT RATIO ------------------------
 
   private fun showAspectRatiosInRecycler() {
-    val adapter = RatioListAdapter(requireView().context, viewModel.ratioStringToValue)
+    val adapter = AspectRatioListAdapter(requireView().context, viewModel.ratioStringToValue)
 
-    adapter.setButtonClickedListener(object : RatioListAdapter.RatioButtonClickedListener {
-      override fun onRatioButtonClicked(ratio: Float) {
-        viewModel.setRatio(ratio)
+    adapter.setButtonClickedListener(object : AspectRatioListAdapter.AspectRatioButtonClickedListener {
+      override fun onAspectRatioButtonClicked(newRatio: Float) {
+        viewModel.setAspectRatio(newRatio)
       }
     })
 
@@ -190,11 +196,11 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     setIsColorPickerHidden(true)
   }
 
-  private fun onRatioChange(ratio: Float) {
-    if (collageFrame.height > 0) {
-      collage.setRatio(ratio)
+  private fun onAspectRatioChange(newRatio: Float) {
+    if (collageViewContainer.height > 0) {
+      collageView.aspectRatio = newRatio
 
-      collageFrameParent.updateLayoutParams {
+      collageViewContainerParent.updateLayoutParams {
         this.width = ViewGroup.LayoutParams.WRAP_CONTENT
         this.height = ViewGroup.LayoutParams.WRAP_CONTENT
       }
@@ -210,9 +216,9 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
   }
 
   override fun onColorChanged(color: Int) {
-    collage.isBorderEnabled = true
+    collageView.isBorderEnabled = true
     if (!borderSwitch.isChecked) borderSwitch.isChecked = true
-    collage.setBorderColor(color)
+    collageView.setBorderColor(color)
   }
 
 
@@ -238,8 +244,8 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
     val uri = data.data!!
     viewModel.addImageUri(uri, lastImageClickedIndex)
 
-    if (collage.childCount > lastImageClickedIndex) {
-      collage.setImageAt(lastImageClickedIndex, uri)
+    if (collageView.childCount > lastImageClickedIndex) {
+      collageView.setImageAt(lastImageClickedIndex, uri)
       lastImageClickedIndex = -1
     }
     else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
@@ -247,13 +253,13 @@ class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView
 
   override fun onClick(view: View?) {
     if (view is TouchImageView) {
-      lastImageClickedIndex = collage.indexOfChild(view)
+      lastImageClickedIndex = collageView.indexOfChild(view)
       startImageImportIntent()
     }
 
     when (view?.id) {
-      R.id.button_frame -> showCollageTypesInRecycler()
-      R.id.button_aspect -> showAspectRatiosInRecycler()
+      R.id.button_layout -> showCollageLayoutsInRecycler()
+      R.id.button_aspect_ratio -> showAspectRatiosInRecycler()
       R.id.button_toggle_border -> showBorderOptions()
     }
   }

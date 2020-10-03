@@ -11,12 +11,15 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.ui.*
 import com.gerardbradshaw.collageview.util.ImageUtil
+import com.gerardbradshaw.collageview.views.AbstractCollageView
 import com.gerardbradshaw.mixup.R
+import com.gerardbradshaw.mixup.ui.editor.EditorFragment
 import com.google.android.material.navigation.NavigationView
 
 class MainActivity :
@@ -30,6 +33,8 @@ class MainActivity :
   private var menu: Menu? = null
   private var collageContainer: FrameLayout? = null
   private var progressBarContainer: FrameLayout? = null
+
+  var savedImageUri: Uri? = null
 
 
 
@@ -78,6 +83,11 @@ class MainActivity :
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    if (getCurrentFragment() !is EditorFragment) {
+      Log.d(TAG, "onOptionsItemSelected: current fragment is not the editor!")
+      return super.onOptionsItemSelected(item)
+    }
+
     when (item.itemId) {
       R.id.action_share -> shareImage()
       R.id.action_save -> saveCollageToGallery()
@@ -97,17 +107,18 @@ class MainActivity :
   // -------------------- SHARE COLLAGE --------------------
 
   private fun shareImage() {
-    setProgressBarVisibility(View.VISIBLE)
-
-    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
+    prepareToCaptureCollage()
     ImageUtil.prepareViewForSharing(this, collageContainer!!, this)
   }
 
   override fun onReadyToShareImage(uri: Uri?) {
     setProgressBarVisibility(View.GONE)
 
-    if (uri != null) startShareIntent(uri)
-    else toastErrorAndLog("Unable to share.", "Unable to share!")
+    if (uri == null) toastErrorAndLog("Unable to share.", "Unable to share!")
+    else {
+      savedImageUri = uri
+      startShareIntent(uri)
+    }
   }
 
   private fun startShareIntent(uri: Uri?) {
@@ -125,16 +136,16 @@ class MainActivity :
   // -------------------- SAVE COLLAGE --------------------
 
   private fun saveCollageToGallery() {
-    setProgressBarVisibility(View.VISIBLE)
-
-    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
+    prepareToCaptureCollage()
     ImageUtil.saveViewToGallery(this, collageContainer!!, this)
   }
 
-  override fun onCollageSavedToGallery(isSavedSuccessfully: Boolean) {
+  override fun onCollageSavedToGallery(isSaveSuccessful: Boolean, uri: Uri?) {
     setProgressBarVisibility(View.GONE)
 
-    if (isSavedSuccessfully) {
+    savedImageUri = uri
+
+    if (isSaveSuccessful) {
       Toast.makeText(this, "Saved to gallery!", Toast.LENGTH_LONG).show()
     }
     else toastErrorAndLog("Write to gallery failed.", "Unable to save :(")
@@ -145,7 +156,20 @@ class MainActivity :
   // -------------------- UTIL --------------------
 
   private fun resetImage() {
-    findNavController(R.id.nav_host_fragment).navigate(R.id.nav_editor)
+    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
+    (collageContainer!!.getChildAt(0) as AbstractCollageView).reset()
+    (getCurrentFragment() as EditorFragment).reset()
+  }
+
+  private fun getCurrentFragment(): Fragment {
+    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+    return navHostFragment!!.childFragmentManager.fragments[0]
+  }
+
+  private fun prepareToCaptureCollage() {
+    savedImageUri = null
+    setProgressBarVisibility(View.VISIBLE)
+    if (collageContainer == null) collageContainer = findViewById(R.id.collage_container)
   }
 
   private fun setProgressBarVisibility(visibility: Int) {
@@ -157,7 +181,7 @@ class MainActivity :
   }
 
   private fun toastErrorAndLog(logMsg: String, toastMsg: String = "Something went wrong :(") {
-    Log.d(TAG, logMsg)
+    Log.d(TAG, "toastErrorAndLog: $logMsg")
     Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show()
   }
 

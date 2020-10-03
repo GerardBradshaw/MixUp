@@ -14,8 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:contentDescription="@string/content_description_frame"
+        android:contentDescription="@string/content_description_layout"
         android:padding="4dp"
-        tools:src="@drawable/ic_frame" />
+        tools:src="@drawable/ic_collage_layout" />
 
 </androidx.cardview.widget.CardView>

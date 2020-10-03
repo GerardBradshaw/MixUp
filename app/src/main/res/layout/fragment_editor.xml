@@ -14,7 +14,7 @@
         android:layout_height="0dp">
 
         <FrameLayout
-            android:id="@+id/parent_frame"
+            android:id="@+id/collage_container_parent"
             android:layout_gravity="center"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
@@ -38,7 +38,7 @@
     </FrameLayout>
 
     <FrameLayout
-        android:id="@+id/tool_popup_frame"
+        android:id="@+id/tool_popup_container"
         android:layout_width="match_parent"
         android:layout_height="@dimen/recycler_and_picker_height"
         android:background="@android:color/white"
@@ -74,7 +74,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/tool_popup_recycler"
             tools:visibility="invisible"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
     </FrameLayout>
@@ -90,16 +90,16 @@
         app:layout_constraintStart_toStartOf="parent" >
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/button_frame"
+            android:id="@+id/button_layout"
             style="@style/ToolButtonCard" >
             <TextView
-                android:text="@string/frame"
-                android:drawableTop="@drawable/ic_frame"
+                android:text="@string/layout"
+                android:drawableTop="@drawable/ic_collage_layout"
                 style="@style/ToolButtonCardChild"/>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/button_aspect"
+            android:id="@+id/button_aspect_ratio"
             style="@style/ToolButtonCard">
             <TextView
                 android:text="@string/aspect"

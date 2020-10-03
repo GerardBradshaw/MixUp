@@ -11,7 +11,7 @@
     app:cardCornerRadius="0dp">
 
     <TextView
-        android:id="@+id/ratio_text_view"
+        android:id="@+id/aspect_ratio_text_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"

@@ -6,8 +6,8 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_editor"
-            android:icon="@drawable/ic_frame"
-            android:title="@string/menu_mix_up" />
+            android:icon="@drawable/ic_collage_layout"
+            android:title="@string/menu_editor" />
         <item
             android:id="@+id/nav_more_apps"
             android:icon="@drawable/ic_menu_apps"
