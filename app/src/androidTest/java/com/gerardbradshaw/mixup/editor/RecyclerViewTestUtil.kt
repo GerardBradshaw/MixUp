@@ -6,7 +6,9 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition
 import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.internal.util.Checks
@@ -17,9 +19,29 @@ import org.hamcrest.Matcher
 import org.hamcrest.Matchers.allOf
 import org.junit.Assert
 
-
 object RecyclerViewTestUtil {
-  fun atPosition(position: Int, itemMatcher: Matcher<View?>): Matcher<View?>? {
+
+  fun checkRecyclerViewContainsLayoutOptions() {
+    onRecyclerView()
+      .check(matches(atPosition(0, hasDescendant(withId(R.id.list_item_button)))))
+  }
+
+  fun checkRecyclerViewContainsAspectRatioOptions() {
+    onRecyclerView()
+      .check(matches(atPosition(0, hasDescendant(withId(R.id.aspect_ratio_text_view)))))
+  }
+
+  fun clickRecyclerViewAtPosition(position: Int) {
+    onRecyclerView()
+      .perform(actionOnItemAtPosition<RecyclerView.ViewHolder>(position, click()))
+  }
+
+
+
+
+  // ---------------- UTIL ----------------
+
+  private fun atPosition(position: Int, itemMatcher: Matcher<View?>): Matcher<View?>? {
     return object : BoundedMatcher<View?, RecyclerView>(RecyclerView::class.java) {
       override fun describeTo(description: Description) {
         description.appendText("has item at position $position: ")
@@ -33,45 +55,7 @@ object RecyclerViewTestUtil {
     }
   }
 
-  fun onRecyclerView() : ViewInteraction {
+  private fun onRecyclerView() : ViewInteraction {
     return onView(allOf(withId(R.id.tool_popup_recycler), isDisplayed()))
-  }
-
-  fun checkRecyclerViewContainsLayoutOptions() {
-    onRecyclerView()
-      .check(matches(atPosition(0, hasDescendant(withId(R.id.list_item_button)))))
-  }
-
-  fun checkRecyclerViewContainsAspectRatioOptions() {
-    onRecyclerView()
-      .check(matches(atPosition(0, hasDescendant(withId(R.id.aspect_ratio_text_view)))))
-  }
-
-
-
-  private class RecyclerViewContainsLayouts : ViewAssertion {
-    override fun check(view: View, noViewFoundException: NoMatchingViewException?) {
-      if (noViewFoundException != null) throw noViewFoundException
-
-      val adapter = (view as RecyclerView).adapter
-      val isLayoutsAdapter = adapter is CollageLayoutListAdapter
-      Assert.assertTrue(isLayoutsAdapter)
-    }
-  }
-
-
-  private fun hasAdapter(adapter: RecyclerView.Adapter<RecyclerView.ViewHolder>): Matcher<RecyclerView?>? {
-    Checks.checkNotNull(adapter)
-
-    return object : BoundedMatcher<RecyclerView?, RecyclerView>(RecyclerView::class.java) {
-      override fun matchesSafely(recycler: RecyclerView): Boolean {
-        val recyclerAdapter = recycler.adapter?.getItemViewType(0)
-        return false // (recycler.adapter) is test
-      }
-
-      override fun describeTo(description: Description) {
-        description.appendText("with background color")
-      }
-    }
   }
 }

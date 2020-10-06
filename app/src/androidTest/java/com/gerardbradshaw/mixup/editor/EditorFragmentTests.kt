@@ -1,28 +1,39 @@
 package com.gerardbradshaw.mixup.editor
 
+import android.content.Intent
+import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.*
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.rule.ActivityTestRule
 import androidx.test.rule.GrantPermissionRule
+import com.gerardbradshaw.collageview.views.CollageView3Image0
+import com.gerardbradshaw.collageview.views.CollageView3Image1
 import com.gerardbradshaw.collageview.views.CollageView3Image2
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageHasAspectRatioSetTo
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageIsBorderEnabled
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.ActivityTestUtil.checkOptionsMenuVisibility
-import com.gerardbradshaw.mixup.ActivityTestUtil.openDrawerAndNavToEditorFragment
-import com.gerardbradshaw.mixup.ActivityTestUtil.openDrawerAndNavToMoreAppsFragment
+import com.gerardbradshaw.mixup.ActivityTestUtil.countImagesOnDevice
 import com.gerardbradshaw.mixup.ActivityTestUtil.pressOptionsMenuButton
+import com.gerardbradshaw.mixup.BaseApplication
+import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.changeAllImages
+import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkAllImagesIsDefault
+import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageTypeIs
 import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsLayoutOptions
 import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsAspectRatioOptions
+import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.clickRecyclerViewAtPosition
 import com.gerardbradshaw.mixup.ui.MainActivity
-import org.hamcrest.Matchers
-import org.hamcrest.Matchers.instanceOf
+import org.hamcrest.Matchers.*
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed
@@ -33,6 +44,7 @@ import org.junit.runners.Parameterized
 @RunWith(Enclosed::class)
 class EditorFragmentTests {
 
+  // Done!
   @RunWith(AndroidJUnit4::class)
   class InitializationTests {
 
@@ -68,74 +80,99 @@ class EditorFragmentTests {
 
     @Test
     fun should_startCollageWith3image2layout_when_firstEntering() {
-      onView(Matchers.allOf(withId(R.id.collage_container)))
-        .check(matches(withChild(instanceOf(CollageView3Image2::class.java))))
+      checkCollageTypeIs(CollageView3Image2::class.java)
     }
   }
 
-
+  // Done!
   @RunWith(AndroidJUnit4::class)
   class IOTests {
 
-//    @get:Rule
-//    val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
-
-    @get:Rule
-    val atr = ActivityTestRule<MainActivity>(MainActivity::class.java)
+    lateinit var activityScenario: ActivityScenario<MainActivity>
+    lateinit var activity: MainActivity
 
     @get:Rule
     val runtimePermissionRule: GrantPermissionRule? =
       GrantPermissionRule.grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
+    @Before
+    fun setup() {
+      ApplicationProvider.getApplicationContext<BaseApplication>().replaceDispatchersForTests()
+
+      activityScenario = ActivityScenario.launch(MainActivity::class.java)
+
+      activityScenario.onActivity {
+        activity = it
+      }
+    }
+
     @Test
     fun should_saveCollageToGallery_when_saveButtonPressed() {
-      // Save the collage
+      val initialImageCount = countImagesOnDevice(activity)
       pressOptionsMenuButton(R.id.action_save)
-
-      // Get the filename of the saved image
-      val filename = atr.activity
-      // TODO
-
-      // Open the gallery
-      // TODO
-
-      // Check that the gallery contains an image with same filename
-      // TODO
-
-      val galleryResult = atr.activity
-      TODO()
+      assertEquals(initialImageCount + 1, countImagesOnDevice(activity))
     }
 
     @Test
     fun should_shareCollage_when_shareButtonPressed() {
-      TODO()
+      Intents.init()
+
+      pressOptionsMenuButton(R.id.action_share)
+
+      intended(allOf(hasAction(Intent.ACTION_CHOOSER), hasExtra(`is`(Intent.EXTRA_INTENT),
+        allOf(hasAction(Intent.ACTION_SEND), hasExtraWithKey(Intent.EXTRA_STREAM)))))
+
+      Intents.release()
     }
+
+
   }
 
-
+  // Done!
   @RunWith(AndroidJUnit4::class)
   class CollageLayoutTests {
 
-    @Rule
-    @JvmField
-    val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
+    lateinit var activityScenario: ActivityScenario<MainActivity>
+    lateinit var activity: MainActivity
+
+    @get:Rule
+    val runtimePermissionRule: GrantPermissionRule? =
+      GrantPermissionRule.grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+    @Before
+    fun setup() {
+      activityScenario = ActivityScenario.launch(MainActivity::class.java)
+
+      activityScenario.onActivity {
+        activity = it
+      }
+    }
 
     @Test
     fun should_showLayoutOptions_when_layoutButtonClicked() {
-      onView(withId(R.id.button_layout))
-        .perform(click())
-
+      onView(withId(R.id.button_layout)).perform(click())
       checkRecyclerViewContainsLayoutOptions()
     }
 
     @Test
     fun should_loadPreviouslySelectedImages_when_layoutChanged() {
-      TODO()
+      changeAllImages(3, activity)
+      clickRecyclerViewAtPosition(3)
+      checkAllImagesIsDefault(false)
     }
 
     @Test
-    fun should_resetCollage_when_resetButtonPressed() {
-      TODO()
+    fun should_notChangeCollageType_when_resetButtonPressed() {
+      clickRecyclerViewAtPosition(3)
+      pressOptionsMenuButton(R.id.action_reset)
+      checkCollageTypeIs(CollageView3Image1::class.java)
+    }
+
+    @Test
+    fun should_haveDefaultImages_when_resetButtonPressed() {
+      changeAllImages(3, activity)
+      pressOptionsMenuButton(R.id.action_reset)
+      checkAllImagesIsDefault(true)
     }
   }
 
