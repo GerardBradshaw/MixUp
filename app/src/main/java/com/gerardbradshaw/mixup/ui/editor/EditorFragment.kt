@@ -26,7 +26,10 @@ import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
 
-class EditorFragment : Fragment(), View.OnClickListener, AbstractColorPickerView.ColorChangedListener {
+class EditorFragment :
+  Fragment(),
+  View.OnClickListener,
+  AbstractColorPickerView.ColorChangedListener {
 
   private lateinit var rootView: View
   private lateinit var viewModel: EditorViewModel

@@ -86,6 +86,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espresso_version"
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$rootProject.espresso_version"
+    androidTestImplementation "androidx.test.espresso:espresso-intents:$rootProject.espresso_version"
     androidTestImplementation "androidx.navigation:navigation-testing:$rootProject.navigation_version"
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'androidx.fragment:fragment-testing:1.2.5'

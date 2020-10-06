@@ -18,9 +18,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.*
 import com.gerardbradshaw.collageview.util.ImageUtil
 import com.gerardbradshaw.collageview.views.AbstractCollageView
+import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.ui.editor.EditorFragment
 import com.google.android.material.navigation.NavigationView
+import javax.inject.Inject
 
 class MainActivity :
   AppCompatActivity(),
@@ -34,7 +36,9 @@ class MainActivity :
   private var collageContainer: FrameLayout? = null
   private var progressBarContainer: FrameLayout? = null
 
-  var savedImageUri: Uri? = null
+  @Inject lateinit var imageUtil: ImageUtil
+
+  private var savedImageUri: Uri? = null
 
 
 
@@ -44,10 +48,11 @@ class MainActivity :
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    // Nothing to inject here! But this is the code I'd use:
-    //(application as BaseApplication).getAppComponent().activityComponent().create().inject(this)
+    (application as BaseApplication).getAppComponent().activityComponent().create().inject(this)
 
     initUi()
+
+    imageUtil.printDispatchers()
   }
 
   private fun initUi() {
@@ -108,7 +113,7 @@ class MainActivity :
 
   private fun shareImage() {
     prepareToCaptureCollage()
-    ImageUtil.prepareViewForSharing(this, collageContainer!!, this)
+    imageUtil.prepareViewForSharing(this, collageContainer!!, this)
   }
 
   override fun onReadyToShareImage(uri: Uri?) {
@@ -137,7 +142,7 @@ class MainActivity :
 
   private fun saveCollageToGallery() {
     prepareToCaptureCollage()
-    ImageUtil.saveViewToGallery(this, collageContainer!!, this)
+    imageUtil.saveViewToGallery(this, collageContainer!!, this)
   }
 
   override fun onCollageSavedToGallery(isSaveSuccessful: Boolean, uri: Uri?) {
