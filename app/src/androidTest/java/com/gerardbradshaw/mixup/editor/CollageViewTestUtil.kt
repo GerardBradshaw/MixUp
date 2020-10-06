@@ -27,6 +27,27 @@ object CollageViewTestUtil {
 
   // ---------------- ASPECT RATIO ----------------
 
+  fun setCollageAspectRatio(ratio: Float) {
+    onCollageView()
+      .perform(changeAspectRatioTo(ratio))
+  }
+
+  private fun changeAspectRatioTo(ratio: Float): ViewAction? {
+    return object : ViewAction {
+      override fun getDescription(): String {
+        return "change aspect ratio"
+      }
+
+      override fun getConstraints(): Matcher<View> {
+        return isAssignableFrom(AbstractCollageView::class.java)
+      }
+
+      override fun perform(uiController: UiController?, view: View?) {
+        if (view is AbstractCollageView) view.aspectRatio = ratio
+      }
+    }
+  }
+
   fun checkCollageHasAspectRatioSetTo(expectedRatio: Float?) {
     onCollageView()
       .check(matches(hasAspectRatioSetTo(expectedRatio)))

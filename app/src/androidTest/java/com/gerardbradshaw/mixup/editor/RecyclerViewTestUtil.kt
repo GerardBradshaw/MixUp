@@ -8,6 +8,7 @@ import androidx.test.espresso.ViewAssertion
 import androidx.test.espresso.ViewInteraction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition
 import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
@@ -32,6 +33,9 @@ object RecyclerViewTestUtil {
   }
 
   fun clickRecyclerViewAtPosition(position: Int) {
+    onRecyclerView()
+      .perform(RecyclerViewActions.scrollToPosition<RecyclerView.ViewHolder>(position))
+
     onRecyclerView()
       .perform(actionOnItemAtPosition<RecyclerView.ViewHolder>(position, click()))
   }

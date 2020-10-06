@@ -5,7 +5,6 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.*
@@ -14,9 +13,7 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
-import com.gerardbradshaw.collageview.views.CollageView3Image0
-import com.gerardbradshaw.collageview.views.CollageView3Image1
-import com.gerardbradshaw.collageview.views.CollageView3Image2
+import com.gerardbradshaw.collageview.views.*
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageHasAspectRatioSetTo
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageIsBorderEnabled
 import com.gerardbradshaw.mixup.R
@@ -26,7 +23,9 @@ import com.gerardbradshaw.mixup.ActivityTestUtil.pressOptionsMenuButton
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.changeAllImages
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkAllImagesIsDefault
+import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageHasActualAspectRatio
 import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageTypeIs
+import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.setCollageAspectRatio
 import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsLayoutOptions
 import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsAspectRatioOptions
 import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.clickRecyclerViewAtPosition
@@ -47,7 +46,6 @@ class EditorFragmentTests {
   // Done!
   @RunWith(AndroidJUnit4::class)
   class InitializationTests {
-
     @Rule
     @JvmField
     val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
@@ -87,7 +85,6 @@ class EditorFragmentTests {
   // Done!
   @RunWith(AndroidJUnit4::class)
   class IOTests {
-
     lateinit var activityScenario: ActivityScenario<MainActivity>
     lateinit var activity: MainActivity
 
@@ -131,7 +128,6 @@ class EditorFragmentTests {
   // Done!
   @RunWith(AndroidJUnit4::class)
   class CollageLayoutTests {
-
     lateinit var activityScenario: ActivityScenario<MainActivity>
     lateinit var activity: MainActivity
 
@@ -176,9 +172,11 @@ class EditorFragmentTests {
     }
   }
 
-
+  // Done!!
   @RunWith(Parameterized::class)
-  class ParameterizedCollageLayoutTests {
+  class ParameterizedLayoutChangeTests(
+    private val inputRecyclerPosition: Int,
+    private val expectedViewType: Class<AbstractCollageView>) {
 
     @Rule
     @JvmField
@@ -186,19 +184,39 @@ class EditorFragmentTests {
 
     @Test
     fun should_changeLayout_when_newLayoutSelected() {
-      TODO()
+      clickRecyclerViewAtPosition(inputRecyclerPosition)
+      checkCollageTypeIs(expectedViewType)
     }
 
     companion object {
       @Parameterized.Parameters(name = "layout = {0}")
       @JvmStatic
       fun params(): Collection<Array<Any>> {
-        TODO()
+        val expectedOutputs = arrayOf<Any>(
+          CollageViewVertical::class.java,
+          CollageViewHorizontal::class.java,
+          CollageView3Image0::class.java,
+          CollageView3Image1::class.java,
+          CollageView3Image2::class.java,
+          CollageView3Image3::class.java,
+          CollageViewHorizontal::class.java,
+          CollageViewVertical::class.java,
+          CollageView4Image0::class.java,
+          CollageView4Image1::class.java,
+          CollageView4Image2::class.java,
+          CollageView4Image3::class.java,
+          CollageView4Image4::class.java)
+
+        val inputParams = Array<Any>(expectedOutputs.size) { it }
+
+        return Array(inputParams.size) {
+          arrayOf(inputParams[it], expectedOutputs[it])
+        }.asList()
       }
     }
   }
 
-
+  // Done!!
   @RunWith(AndroidJUnit4::class)
   class AspectRatioTests {
 
@@ -208,21 +226,16 @@ class EditorFragmentTests {
 
     @Test
     fun should_showAspectRatioOptions_when_aspectRatioButtonClicked() {
-      onView(withId(R.id.button_aspect_ratio))
-        .perform(click())
-
+      pressOptionsMenuButton(R.id.button_aspect_ratio)
       checkRecyclerViewContainsAspectRatioOptions()
-    }
-
-    @Test
-    fun should_loadPreviouslySelectedImages_when_aspectRatioChanged() {
-      TODO()
     }
   }
 
-
+  // Done!!
   @RunWith(Parameterized::class)
-  class ParameterizedAspectRatioTests {
+  class ParameterizedAspectRatioTests(
+    private val inputRecyclerPosition: Int,
+    private val expectedOutputRatio: Float) {
 
     @Rule
     @JvmField
@@ -230,14 +243,35 @@ class EditorFragmentTests {
 
     @Test
     fun should_changeAspectRatio_when_newAspectRatioSelected() {
-      TODO()
+      pressOptionsMenuButton(R.id.button_aspect_ratio)
+      clickRecyclerViewAtPosition(inputRecyclerPosition)
+      checkCollageHasActualAspectRatio(expectedOutputRatio)
     }
 
     companion object {
       @Parameterized.Parameters(name = "ratio = {0}")
       @JvmStatic
       fun params(): Collection<Array<Any>> {
-        TODO()
+        val expectedOutputs = arrayOf<Any>(
+          1f,
+          16f / 9f,
+          9f / 16f,
+          10f / 8f,
+          8f / 10f,
+          7f / 5f,
+          5f / 7f,
+          4f / 3f,
+          3f / 4f,
+          5f / 3f,
+          3f / 5f,
+          3f / 2f,
+          2f / 3f)
+
+        val inputParams = Array<Any>(expectedOutputs.size) { it }
+
+        return Array(inputParams.size) {
+          arrayOf(inputParams[it], expectedOutputs[it])
+        }.asList()
       }
     }
   }
