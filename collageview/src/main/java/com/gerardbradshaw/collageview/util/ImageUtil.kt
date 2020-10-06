@@ -18,21 +18,25 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Default
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-object ImageUtil {
+class ImageUtil constructor(
+  private val mainDispatcher: CoroutineDispatcher,
+  private val defaultDispatcher: CoroutineDispatcher,
+  private val ioDispatcher: CoroutineDispatcher
+) {
 
-  private const val TAG = "ImageUtil"
-
-
+  fun printDispatchers() {
+    Log.d(TAG, "main: $mainDispatcher")
+    Log.d(TAG, "default: $defaultDispatcher")
+    Log.d(TAG, "io: $ioDispatcher")
+  }
 
   // -------------------- SHARING --------------------
 
@@ -40,14 +44,18 @@ object ImageUtil {
    * Saves [view] to internal storage and sends the file [Uri] to the listener on completion.
    */
   fun prepareViewForSharing(context: Context, view: View, listener: ImageSavedListener) {
-    CoroutineScope(Default).launch {
+    CoroutineScope(defaultDispatcher).launch {
       val bitmap = createBitmapFrom(view)
       saveBitmapAndNotifyListener(context, bitmap, listener)
     }
   }
 
-  private suspend fun saveBitmapAndNotifyListener(context: Context, bitmap: Bitmap, listener: ImageSavedListener) {
-    withContext(IO) {
+  private suspend fun saveBitmapAndNotifyListener(
+    context: Context,
+    bitmap: Bitmap,
+    listener: ImageSavedListener
+  ) {
+    withContext(ioDispatcher) {
       val uri = saveBitmapToInternalStorage(context, bitmap)
       notifyListenerBitmapSaveAttempted(listener, uri)
     }
@@ -67,7 +75,7 @@ object ImageUtil {
   }
 
   private suspend fun notifyListenerBitmapSaveAttempted(listener: ImageSavedListener, uri: Uri?) {
-    withContext(Main) {
+    withContext(mainDispatcher) {
       listener.onReadyToShareImage(uri)
     }
   }
@@ -84,14 +92,18 @@ object ImageUtil {
 
     if (!isStoragePermissionGranted(activity, listener)) return
 
-    CoroutineScope(Default).launch {
+    CoroutineScope(defaultDispatcher).launch {
       val bitmap = createBitmapFrom(view)
       saveBitmapToGalleryAndNotifyListener(activity, bitmap, listener)
     }
   }
 
-  private suspend fun saveBitmapToGalleryAndNotifyListener(context: Context, bitmap: Bitmap, listener: ImageSavedListener) {
-    withContext(IO) {
+  private suspend fun saveBitmapToGalleryAndNotifyListener(
+    context: Context,
+    bitmap: Bitmap,
+    listener: ImageSavedListener
+  ) {
+    withContext(ioDispatcher) {
       val uri = saveBitmapToGallery(context, bitmap)
       notifyListenerOfImageSavedToGalleryResult(listener, uri)
     }
@@ -109,14 +121,20 @@ object ImageUtil {
   }
 
   @RequiresApi(29)
-  private fun saveBitmapToGalleryAndroidQ(context: Context, bitmap: Bitmap, filename: String, folderName: String): Uri? {
+  private fun saveBitmapToGalleryAndroidQ(
+    context: Context,
+    bitmap: Bitmap,
+    filename: String,
+    folderName: String
+  ): Uri? {
     val contentValues = getContentValues(filename).apply {
       put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/$folderName")
       put(MediaStore.Images.Media.IS_PENDING, true)
       put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
     }
 
-    val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+    val uri = context.contentResolver
+      .insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
     var isSavedSuccessfully = false
 
@@ -132,12 +150,18 @@ object ImageUtil {
 
   @Suppress("DEPRECATION")
   @TargetApi(21)
-  private fun saveBitmapToGalleryAndroidM(context: Context, bitmap: Bitmap, filename: String, folderName: String): Uri? {
-    val directory = File(Environment.getExternalStorageDirectory().toString() + "/" + folderName)
+  private fun saveBitmapToGalleryAndroidM(
+    context: Context,
+    bitmap: Bitmap,
+    filename: String,
+    folderName: String
+  ): Uri? {
 
-    if (!directory.exists()) directory.mkdirs()
+    val dir = File(Environment.getExternalStorageDirectory().toString() + "/" + folderName)
 
-    val file = File(directory, filename)
+    if (!dir.exists()) dir.mkdirs()
+
+    val file = File(dir, filename)
     val isSavedSuccessfully = saveImageToStream(bitmap, FileOutputStream(file))
 
     val values = getContentValues(filename)
@@ -147,8 +171,11 @@ object ImageUtil {
     return if (isSavedSuccessfully) file.toUri() else null
   }
 
-  private suspend fun notifyListenerOfImageSavedToGalleryResult(listener: ImageSavedListener, uri: Uri?) {
-    withContext(Main) {
+  private suspend fun notifyListenerOfImageSavedToGalleryResult(
+    listener: ImageSavedListener,
+    uri: Uri?
+  ) {
+    withContext(mainDispatcher) {
       listener.onCollageSavedToGallery(uri != null, uri)
     }
   }
@@ -244,5 +271,9 @@ object ImageUtil {
   interface ImageSavedListener {
     fun onCollageSavedToGallery(isSaveSuccessful: Boolean, uri: Uri?)
     fun onReadyToShareImage(uri: Uri?)
+  }
+
+  companion object {
+    private const val TAG = "GGG"
   }
 }

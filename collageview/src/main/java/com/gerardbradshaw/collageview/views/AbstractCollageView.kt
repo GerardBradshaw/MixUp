@@ -112,6 +112,8 @@ abstract class AbstractCollageView(context: Context,
             .load(uri)
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(this)
+
+          this.setTag(R.id.image_source, uri.toString())
         }
       }
       else {
@@ -124,32 +126,12 @@ abstract class AbstractCollageView(context: Context,
             .load(R.drawable.img_tap_to_add_photo)
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(this)
+
+          this.setTag(R.id.image_source, R.string.default_image_tag)
         }
       }
     }
     else Log.d(TAG, "setImageAt: invalid index")
-  }
-
-  /** Resize the View to the specified dimensions. */
-  private fun resize(newWidth: Int, newHeight: Int) {
-    if (layoutParams == null) {
-      layoutParams = LayoutParams(newWidth, newHeight)
-    }
-    else {
-      layoutParams.width = newWidth
-      layoutParams.height = newHeight
-    }
-
-    val currentXScale = layoutWidth.toFloat() / initialLayoutWidth.toFloat()
-    val newXScale = newWidth / initialLayoutWidth.toFloat()
-
-    val currentYScale = layoutHeight.toFloat() / initialLayoutHeight.toFloat()
-    val newYScale = newHeight / initialLayoutHeight.toFloat()
-
-    layoutWidth = newWidth
-    layoutHeight = newHeight
-
-    scaleViews(newXScale / currentXScale, newYScale / currentYScale)
   }
 
   /** The last aspect ratio set (null if no specific ratio has been set).  */
@@ -194,6 +176,7 @@ abstract class AbstractCollageView(context: Context,
 
         (imageBorder?.mutate() as GradientDrawable).setStroke(frameBorderThickness, borderColor)
         image.foreground = imageBorder
+        image.setTag(R.id.border_color, borderColor)
       }
     }
     else {
@@ -236,6 +219,17 @@ abstract class AbstractCollageView(context: Context,
     initImageLayout()
   }
 
+  fun getValidImageCount(): Int {
+    var count = 0
+
+    for (view in imageViews) {
+      if (view.getTag(R.id.image_source) != context.getString(R.string.default_image_tag)) count++
+    }
+
+    return count
+  }
+
+
 
   // ------------------------ COLLAGE VIEW INSTANCE METHODS ------------------------
 
@@ -265,10 +259,11 @@ abstract class AbstractCollageView(context: Context,
 
   /** Helper for the inheriting class' onTouch() method. This reduced the need to duplicate the
   below code in each class inheriting from AbstractCollageView. */
-  protected fun onTouchHelper(view: View,
-                              event: MotionEvent,
-                              resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit): Boolean {
-    
+  protected fun onTouchHelper(
+    view: View,
+    event: MotionEvent,
+    resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit
+  ): Boolean {
     return when (event.action) {
       MotionEvent.ACTION_DOWN -> {
         saveTouchEventProperties(view, event)
@@ -327,6 +322,27 @@ abstract class AbstractCollageView(context: Context,
       layoutParams.width = width
       layoutParams.height = height
     }
+  }
+
+  private fun resize(newWidth: Int, newHeight: Int) {
+    if (layoutParams == null) {
+      layoutParams = LayoutParams(newWidth, newHeight)
+    }
+    else {
+      layoutParams.width = newWidth
+      layoutParams.height = newHeight
+    }
+
+    val currentXScale = layoutWidth.toFloat() / initialLayoutWidth.toFloat()
+    val newXScale = newWidth / initialLayoutWidth.toFloat()
+
+    val currentYScale = layoutHeight.toFloat() / initialLayoutHeight.toFloat()
+    val newYScale = newHeight / initialLayoutHeight.toFloat()
+
+    layoutWidth = newWidth
+    layoutHeight = newHeight
+
+    scaleViews(newXScale / currentXScale, newYScale / currentYScale)
   }
 
   private fun syncImageSizeWithCacheAt(index: Int) {
@@ -437,8 +453,11 @@ abstract class AbstractCollageView(context: Context,
   protected abstract fun initImageLayout()
 
   private fun addResizeRunnableToQueueAndRun(
-    event: MotionEvent, touchRawX: Float, touchRawY: Float,
-    resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit) {
+    event: MotionEvent,
+    touchRawX: Float,
+    touchRawY: Float,
+    resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit
+  ) {
 
     resizeTaskRunner.addNewTask(Runnable {
       val deltaX = event.rawX - touchRawX
