@@ -14,12 +14,15 @@ class BaseApplication : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    component = DaggerAppComponent.builder()
-      .setMainDispatcher(Main)
-      .setDefaultDispatcher(Default)
-      .setIoDispatcher(IO)
-      .setApplication(this)
-      .build()
+
+    component =
+      DaggerAppComponent
+        .builder()
+        .setMainDispatcher(Main)
+        .setDefaultDispatcher(Default)
+        .setIoDispatcher(IO)
+        .setApplication(this)
+        .build()
   }
 
   fun getAppComponent(): AppComponent {
@@ -27,11 +30,13 @@ class BaseApplication : Application() {
   }
 
   fun replaceDispatchersForTests() {
-    component = DaggerAppComponent.builder()
-      .setMainDispatcher(Main)
-      .setDefaultDispatcher(Main)
-      .setIoDispatcher(Main)
-      .setApplication(this)
-      .build()
+    component =
+      DaggerAppComponent
+        .builder()
+        .setMainDispatcher(Main)
+        .setDefaultDispatcher(Main)
+       .setIoDispatcher(Main)
+       .setApplication(this)
+        .build()
   }
 }

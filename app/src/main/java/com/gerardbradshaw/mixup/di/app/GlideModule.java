@@ -28,7 +28,10 @@ public abstract class GlideModule {
 
   @Singleton
   @Provides
-  static RequestManager provideGlideInstance(Application application, RequestOptions requestOptions) {
+  static RequestManager provideGlideInstance(
+      Application application,
+      RequestOptions requestOptions
+  ) {
     return Glide
         .with(application)
         .setDefaultRequestOptions(requestOptions);

@@ -37,19 +37,44 @@ class EditorViewModel : ViewModel() {
   }
 
   private fun initCollageTypeMap() {
-    collageIconIdToType[R.drawable.ic_collage_2_image_vertical] = CollageViewFactory.CollageLayoutType.TWO_IMAGE_VERTICAL
-    collageIconIdToType[R.drawable.ic_collage_2_image_horizontal] = CollageViewFactory.CollageLayoutType.TWO_IMAGE_HORIZONTAL
-    collageIconIdToType[R.drawable.ic_collage_type_3image0] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_0
-    collageIconIdToType[R.drawable.ic_collage_type_3image1] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_1
-    collageIconIdToType[R.drawable.ic_collage_type_3image2] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_2
-    collageIconIdToType[R.drawable.ic_collage_type_3image3] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_3
-    collageIconIdToType[R.drawable.ic_collage_type_3image4] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_HORIZONTAL
-    collageIconIdToType[R.drawable.ic_collage_type_3image5] = CollageViewFactory.CollageLayoutType.THREE_IMAGE_VERTICAL
-    collageIconIdToType[R.drawable.ic_collage_type_4image0] = CollageViewFactory.CollageLayoutType.FOUR_IMAGE_0
-    collageIconIdToType[R.drawable.ic_collage_type_4image1] = CollageViewFactory.CollageLayoutType.FOUR_IMAGE_1
-    collageIconIdToType[R.drawable.ic_collage_type_4image2] = CollageViewFactory.CollageLayoutType.FOUR_IMAGE_2
-    collageIconIdToType[R.drawable.ic_collage_type_4image3] = CollageViewFactory.CollageLayoutType.FOUR_IMAGE_3
-    collageIconIdToType[R.drawable.ic_collage_type_4image4] = CollageViewFactory.CollageLayoutType.FOUR_IMAGE_4
+    collageIconIdToType[R.drawable.ic_collage_2_image_vertical] =
+      CollageViewFactory.CollageLayoutType.TWO_IMAGE_VERTICAL
+
+    collageIconIdToType[R.drawable.ic_collage_2_image_horizontal] =
+      CollageViewFactory.CollageLayoutType.TWO_IMAGE_HORIZONTAL
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image0] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_0
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image1] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_1
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image2] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_2
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image3] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_3
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image4] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_HORIZONTAL
+
+    collageIconIdToType[R.drawable.ic_collage_type_3image5] =
+      CollageViewFactory.CollageLayoutType.THREE_IMAGE_VERTICAL
+
+    collageIconIdToType[R.drawable.ic_collage_type_4image0] =
+      CollageViewFactory.CollageLayoutType.FOUR_IMAGE_0
+
+    collageIconIdToType[R.drawable.ic_collage_type_4image1] =
+      CollageViewFactory.CollageLayoutType.FOUR_IMAGE_1
+
+    collageIconIdToType[R.drawable.ic_collage_type_4image2] =
+      CollageViewFactory.CollageLayoutType.FOUR_IMAGE_2
+
+    collageIconIdToType[R.drawable.ic_collage_type_4image3] =
+      CollageViewFactory.CollageLayoutType.FOUR_IMAGE_3
+
+    collageIconIdToType[R.drawable.ic_collage_type_4image4] =
+      CollageViewFactory.CollageLayoutType.FOUR_IMAGE_4
   }
 
   private fun initAspectRatioMap() {

@@ -14,7 +14,6 @@ import com.gerardbradshaw.mixup.models.AppInfo
 import com.gerardbradshaw.mixup.R
 import javax.inject.Inject
 
-private const val TAG = "MoreAppsFragment"
 
 class MoreAppsFragment : Fragment() {
 
@@ -22,12 +21,17 @@ class MoreAppsFragment : Fragment() {
   @Inject lateinit var adapter: AppListAdapter
   private lateinit var viewModel: MoreAppsViewModel
 
-  override fun onCreateView(inflater: LayoutInflater,
-                            container: ViewGroup?,
-                            savedInstanceState: Bundle?): View? {
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+  ): View? {
 
-    (requireActivity().application as BaseApplication).getAppComponent()
-      .moreAppsComponent().create(requireActivity()).inject(this)
+    (requireActivity().application as BaseApplication)
+      .getAppComponent()
+      .moreAppsComponent()
+      .create(requireActivity())
+      .inject(this)
 
     return inflater.inflate(R.layout.fragment_more_apps, container, false)
   }
@@ -39,7 +43,9 @@ class MoreAppsFragment : Fragment() {
   }
 
   private fun initRecycler() {
-    for (app in appSet) viewModel.addAppToList(app)
+    for (app in appSet) {
+      viewModel.addAppToList(app)
+    }
 
     viewModel.getAppList().observe(requireActivity(), Observer { adapter.setAppList(it) })
 
@@ -50,5 +56,9 @@ class MoreAppsFragment : Fragment() {
         LinearLayoutManager.VERTICAL,
         false)
     }
+  }
+
+  companion object {
+    private const val TAG = "MoreAppsFragment"
   }
 }

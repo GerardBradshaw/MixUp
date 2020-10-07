@@ -10,8 +10,10 @@ import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.mixup.R
 import java.util.LinkedHashMap
 
-class CollageLayoutListAdapter(context: Context, layouts: LinkedHashMap<Int, CollageViewFactory.CollageLayoutType>) :
-  RecyclerView.Adapter<CollageLayoutListAdapter.IconViewHolder>() {
+class CollageLayoutListAdapter(
+  context: Context,
+  layouts: LinkedHashMap<Int, CollageViewFactory.CollageLayoutType>
+) : RecyclerView.Adapter<CollageLayoutListAdapter.IconViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
   private val iconResIds = layouts.keys.toList()

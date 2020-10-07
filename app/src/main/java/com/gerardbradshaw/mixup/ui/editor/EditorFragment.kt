@@ -49,12 +49,17 @@ class EditorFragment :
 
   // ------------------------ INITIALIZATION ------------------------
 
-  override fun onCreateView(inflater: LayoutInflater,
-                            container: ViewGroup?,
-                            savedInstanceState: Bundle?): View? {
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+  ): View? {
 
-    (requireActivity().application as BaseApplication).getAppComponent()
-      .editorComponent().create().inject(this)
+    (requireActivity().application as BaseApplication)
+      .getAppComponent()
+      .editorComponent()
+      .create()
+      .inject(this)
 
     return inflater.inflate(R.layout.fragment_editor, container, false)
   }
@@ -80,7 +85,6 @@ class EditorFragment :
 
   private fun initCollage() {
     collageViewContainerParent = rootView.findViewById(R.id.collage_container_parent)
-
     collageViewContainer = rootView.findViewById(R.id.collage_container)
 
     collageViewContainer.viewTreeObserver.addOnGlobalLayoutListener(
@@ -108,9 +112,7 @@ class EditorFragment :
 
   private fun initDefaultCollageView() {
     collageView = collageViewFactory.getView(CollageViewFactory.CollageLayoutType.THREE_IMAGE_2)
-
     collageViewContainer.addView(collageView)
-
     collageView.setImageClickListener(this)
   }
 
@@ -185,16 +187,20 @@ class EditorFragment :
   private fun showAspectRatiosInRecycler() {
     val adapter = AspectRatioListAdapter(requireView().context, viewModel.ratioStringToValue)
 
-    adapter.setButtonClickedListener(object : AspectRatioListAdapter.AspectRatioButtonClickedListener {
-      override fun onAspectRatioButtonClicked(newRatio: Float) {
-        viewModel.setAspectRatio(newRatio)
+    adapter
+      .setButtonClickedListener(object : AspectRatioListAdapter.AspectRatioButtonClickedListener {
+        override fun onAspectRatioButtonClicked(newRatio: Float) {
+          viewModel.setAspectRatio(newRatio)
       }
     })
 
     recyclerView.adapter = adapter
 
-    recyclerView.layoutManager = LinearLayoutManager(
-      requireView().context, LinearLayoutManager.HORIZONTAL, false)
+    recyclerView.layoutManager =
+      LinearLayoutManager(
+        requireView().context,
+        LinearLayoutManager.HORIZONTAL,
+        false)
 
     setIsColorPickerHidden(true)
   }
@@ -239,7 +245,9 @@ class EditorFragment :
       REQUEST_IMAGE_IMPORT_CODE -> {
         if (resultCode == RESULT_OK && data != null) onImageImported(data)
       }
-      else -> super.onActivityResult(requestCode, resultCode, data)
+      else -> {
+        super.onActivityResult(requestCode, resultCode, data)
+      }
     }
   }
 

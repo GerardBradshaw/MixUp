@@ -15,8 +15,5 @@ interface MoreAppsComponent {
     fun create(@BindsInstance activityContext: Context): MoreAppsComponent
   }
 
-  //@Named("mater_info")
-  //fun provideAppInfo(): AppInfo
-
   fun inject(fragment: MoreAppsFragment)
 }

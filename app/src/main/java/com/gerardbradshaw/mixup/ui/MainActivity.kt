@@ -82,7 +82,10 @@ class MainActivity :
     return super.onCreateOptionsMenu(menu)
   }
 
-  override fun onDestinationChanged(controller: NavController, dest: NavDestination, args: Bundle?) {
+  override fun onDestinationChanged(
+    controller: NavController,
+    dest: NavDestination, args: Bundle?
+  ) {
     val showOptionsMenu = dest.id != R.id.nav_more_apps
     menu?.setGroupVisible(R.id.main_options_menu_group, showOptionsMenu)
   }

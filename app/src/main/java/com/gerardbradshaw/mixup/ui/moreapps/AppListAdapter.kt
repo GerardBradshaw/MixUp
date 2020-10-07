@@ -18,11 +18,10 @@ import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-private const val TAG = "AppListAdapter"
-
-class AppListAdapter @Inject constructor(private val context: Context,
-                                         private val glideInstance: RequestManager) :
-  RecyclerView.Adapter<AppListAdapter.AppInfoViewHolder>() {
+class AppListAdapter @Inject constructor(
+  private val context: Context,
+  private val glideInstance: RequestManager
+) : RecyclerView.Adapter<AppListAdapter.AppInfoViewHolder>() {
 
   private var appList: ArrayList<AppInfo>? = null
   private val inflater = LayoutInflater.from(context)
@@ -67,5 +66,9 @@ class AppListAdapter @Inject constructor(private val context: Context,
     val titleView: TextView = itemView.findViewById(R.id.app_title)
     val descriptionView: TextView = itemView.findViewById(R.id.app_description)
     val iconView: ImageView = itemView.findViewById(R.id.app_logo)
+  }
+
+  companion object {
+    private const val TAG = "AppListAdapter"
   }
 }

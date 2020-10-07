@@ -9,8 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.gerardbradshaw.mixup.R
 import java.util.LinkedHashMap
 
-class AspectRatioListAdapter(context: Context, ratios: LinkedHashMap<String, Float>)
-  : RecyclerView.Adapter<AspectRatioListAdapter.AspectRatioViewHolder>() {
+class AspectRatioListAdapter(
+  context: Context,
+  ratios: LinkedHashMap<String, Float>
+) : RecyclerView.Adapter<AspectRatioListAdapter.AspectRatioViewHolder>() {
 
   private val inflater = LayoutInflater.from(context)
   private val ratioStrings = ratios.keys.toList()

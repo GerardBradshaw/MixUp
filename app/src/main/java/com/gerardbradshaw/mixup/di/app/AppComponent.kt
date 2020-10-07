@@ -16,10 +16,18 @@ interface AppComponent {
 
   @Component.Builder
   interface Builder {
-    fun setMainDispatcher(@BindsInstance @Named("main_thread") dispatcher: CoroutineDispatcher): Builder
-    fun setDefaultDispatcher(@BindsInstance @Named("default_thread") dispatcher: CoroutineDispatcher): Builder
-    fun setIoDispatcher(@BindsInstance @Named("io_thread") dispatcher: CoroutineDispatcher): Builder
-    fun setApplication(@BindsInstance application: Application): Builder
+    fun setMainDispatcher(
+      @BindsInstance @Named("thread_main") dispatcher: CoroutineDispatcher): Builder
+
+    fun setDefaultDispatcher(
+      @BindsInstance @Named("thread_default") dispatcher: CoroutineDispatcher): Builder
+
+    fun setIoDispatcher(
+      @BindsInstance @Named("thread_io") dispatcher: CoroutineDispatcher): Builder
+
+    fun setApplication(
+      @BindsInstance application: Application): Builder
+
     fun build(): AppComponent
   }
 

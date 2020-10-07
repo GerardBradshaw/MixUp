@@ -190,8 +190,8 @@ class EditorFragmentTests {
   @RunWith(Parameterized::class)
   class ParameterizedLayoutChangeTests(
     private val inputRecyclerPosition: Int,
-    private val expectedViewType: Class<AbstractCollageView>) {
-
+    private val expectedViewType: Class<AbstractCollageView>
+  ) {
     @Rule
     @JvmField
     val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
@@ -252,8 +252,8 @@ class EditorFragmentTests {
   @RunWith(Parameterized::class)
   class ParameterizedAspectRatioTests(
     private val inputRecyclerPosition: Int,
-    private val expectedOutputRatio: Float) {
-
+    private val expectedOutputRatio: Float
+  ) {
     @Rule
     @JvmField
     val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
@@ -393,6 +393,5 @@ class EditorFragmentTests {
       changeImageAt(0, activity)
       checkImageAtPositionIsNotTheDefault(0)
     }
-
   }
 }

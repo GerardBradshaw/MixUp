@@ -15,10 +15,10 @@ public abstract class ImageUtilModule {
 
   @Provides
   static ImageUtil provideImageUtil(
-      @Named("main_thread") CoroutineDispatcher mainDispatcher,
-      @Named("default_thread") CoroutineDispatcher defaultDispatcher,
-      @Named("io_thread") CoroutineDispatcher ioDispatcher) {
-
+      @Named("thread_main") CoroutineDispatcher mainDispatcher,
+      @Named("thread_default") CoroutineDispatcher defaultDispatcher,
+      @Named("thread_io") CoroutineDispatcher ioDispatcher
+  ) {
     return new ImageUtil(mainDispatcher, defaultDispatcher, ioDispatcher);
   }
 }
