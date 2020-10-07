@@ -20,8 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.gerardbradshaw.collageview.CollageViewFactory
 import com.gerardbradshaw.collageview.views.AbstractCollageView
-import com.gerardbradshaw.library.views.AbstractColorPickerView
-import com.gerardbradshaw.library.views.CompactColorPickerView
+import com.gerardbradshaw.colorpickerlibrary.views.AbstractColorPickerView
+import com.gerardbradshaw.colorpickerlibrary.views.CompactColorPickerView
 import com.gerardbradshaw.mixup.BaseApplication
 import com.gerardbradshaw.mixup.R
 import com.ortiz.touchview.TouchImageView
@@ -118,12 +118,12 @@ class EditorFragment :
     requireView().also {
       it.findViewById<CardView>(R.id.button_layout).setOnClickListener(this)
       it.findViewById<CardView>(R.id.button_aspect_ratio).setOnClickListener(this)
-      it.findViewById<CardView>(R.id.button_toggle_border).setOnClickListener(this)
+      it.findViewById<CardView>(R.id.button_border).setOnClickListener(this)
     }
   }
 
   private fun initBorderColorPicker() {
-    val colorPicker: CompactColorPickerView = requireView().findViewById(R.id.slide_view)
+    val colorPicker: CompactColorPickerView = requireView().findViewById(R.id.color_picker_view)
     colorPicker.setOnColorSelectedListener(this)
 
     borderSwitch = requireView().findViewById(R.id.border_switch)
@@ -263,7 +263,7 @@ class EditorFragment :
     when (view?.id) {
       R.id.button_layout -> showCollageLayoutsInRecycler()
       R.id.button_aspect_ratio -> showAspectRatiosInRecycler()
-      R.id.button_toggle_border -> showBorderOptions()
+      R.id.button_border -> showBorderOptions()
     }
   }
 

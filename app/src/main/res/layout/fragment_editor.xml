@@ -52,8 +52,8 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <com.gerardbradshaw.library.views.CompactColorPickerView
-                android:id="@+id/slide_view"
+            <com.gerardbradshaw.colorpickerlibrary.views.CompactColorPickerView
+                android:id="@+id/color_picker_view"
                 android:layout_gravity="center"
                 app:menuType="image"
                 app:enablePreview="false"
@@ -94,8 +94,8 @@
             style="@style/ToolButtonCard" >
             <TextView
                 android:text="@string/layout"
-                android:drawableTop="@drawable/ic_collage_layout"
-                style="@style/ToolButtonCardChild"/>
+                style="@style/ToolButtonCardChild"
+                app:drawableTopCompat="@drawable/ic_collage_layout" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -103,17 +103,17 @@
             style="@style/ToolButtonCard">
             <TextView
                 android:text="@string/aspect"
-                android:drawableTop="@drawable/ic_aspect"
-                style="@style/ToolButtonCardChild"/>
+                style="@style/ToolButtonCardChild"
+                app:drawableTopCompat="@drawable/ic_aspect" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/button_toggle_border"
+            android:id="@+id/button_border"
             style="@style/ToolButtonCard">
             <TextView
                 android:text="@string/border"
-                android:drawableTop="@drawable/ic_border"
-                style="@style/ToolButtonCardChild"/>
+                style="@style/ToolButtonCardChild"
+                app:drawableTopCompat="@drawable/ic_border" />
         </androidx.cardview.widget.CardView>
     </LinearLayout>
 

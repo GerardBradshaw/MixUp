@@ -19,6 +19,7 @@ import com.gerardbradshaw.collageview.R
 import com.gerardbradshaw.collageview.util.ImageParams
 import com.gerardbradshaw.collageview.util.TaskRunner
 import com.ortiz.touchview.TouchImageView
+import java.lang.IndexOutOfBoundsException
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -127,7 +128,7 @@ abstract class AbstractCollageView(context: Context,
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(this)
 
-          this.setTag(R.id.image_source, R.string.default_image_tag)
+          this.setTag(R.id.image_source, context.getString(R.string.default_image_tag))
         }
       }
     }
@@ -202,6 +203,11 @@ abstract class AbstractCollageView(context: Context,
     }
   }
 
+  /** Returns the current border color, or null if border is not enabled. */
+  fun getBorderColor(): Int? {
+    return if (isLayoutInflated && isBorderEnabled) borderColor else null
+  }
+
   /** Sets the listener to be notified of image clicks. The View given in the OnClick() interface
    is the TouchImageView clicked and not this (parent) CollageView. */
   fun setImageClickListener(listener: OnClickListener) {
@@ -219,7 +225,7 @@ abstract class AbstractCollageView(context: Context,
     initImageLayout()
   }
 
-  fun getValidImageCount(): Int {
+  fun getSetImageCount(): Int {
     var count = 0
 
     for (view in imageViews) {
@@ -227,6 +233,13 @@ abstract class AbstractCollageView(context: Context,
     }
 
     return count
+  }
+
+  fun isSetImageAt(position: Int): Boolean {
+    if (position < imageCount) {
+      return imageViews[position].getTag(R.id.image_source) != context.getString(R.string.default_image_tag)
+    }
+    else throw IndexOutOfBoundsException("position index too large")
   }
 
 

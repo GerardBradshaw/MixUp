@@ -5,6 +5,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.*
@@ -14,21 +15,29 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.gerardbradshaw.collageview.views.*
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageHasAspectRatioSetTo
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageIsBorderEnabled
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkCollageHasAspectRatioSetTo
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkCollageBorderEnabled
 import com.gerardbradshaw.mixup.R
 import com.gerardbradshaw.mixup.ActivityTestUtil.checkOptionsMenuVisibility
 import com.gerardbradshaw.mixup.ActivityTestUtil.countImagesOnDevice
 import com.gerardbradshaw.mixup.ActivityTestUtil.pressOptionsMenuButton
 import com.gerardbradshaw.mixup.BaseApplication
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.changeAllImages
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkAllImagesIsDefault
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageHasActualAspectRatio
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.checkCollageTypeIs
-import com.gerardbradshaw.mixup.editor.CollageViewTestUtil.setCollageAspectRatio
-import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsLayoutOptions
-import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.checkRecyclerViewContainsAspectRatioOptions
-import com.gerardbradshaw.mixup.editor.RecyclerViewTestUtil.clickRecyclerViewAtPosition
+import com.gerardbradshaw.mixup.TestUtil.checkIsDisplayed
+import com.gerardbradshaw.mixup.TestUtil.checkIsNotDisplayed
+import com.gerardbradshaw.mixup.TestUtil.setChecked
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.changeAllImages
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.changeImageAt
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkAllImagesAreTheDefault
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkAllImagesAreNotTheDefault
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkBorderColorIs
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkCollageHasActualAspectRatio
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkCollageTypeIs
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkImageAtPositionIsNotTheDefault
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkRecyclerViewContainsLayoutOptions
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.checkRecyclerViewContainsAspectRatioOptions
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.clickImageAtPosition
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.clickRecyclerViewAtPosition
+import com.gerardbradshaw.mixup.editor.EditorTestUtil.setPickerColorRatio
 import com.gerardbradshaw.mixup.ui.MainActivity
 import org.hamcrest.Matchers.*
 import org.junit.Assert.*
@@ -43,7 +52,8 @@ import org.junit.runners.Parameterized
 @RunWith(Enclosed::class)
 class EditorFragmentTests {
 
-  // Done!
+  // ---------------- INITIALIZATION TESTS ----------------
+
   @RunWith(AndroidJUnit4::class)
   class InitializationTests {
     @Rule
@@ -73,7 +83,7 @@ class EditorFragmentTests {
 
     @Test
     fun should_startCollageWithNoBorder_when_firstEntering() {
-      checkCollageIsBorderEnabled(false)
+      checkCollageBorderEnabled(false)
     }
 
     @Test
@@ -82,7 +92,10 @@ class EditorFragmentTests {
     }
   }
 
-  // Done!
+
+
+  // ---------------- IO TESTS ----------------
+
   @RunWith(AndroidJUnit4::class)
   class IOTests {
     lateinit var activityScenario: ActivityScenario<MainActivity>
@@ -121,11 +134,12 @@ class EditorFragmentTests {
 
       Intents.release()
     }
-
-
   }
 
-  // Done!
+
+
+  // ---------------- LAYOUT TESTS ----------------
+
   @RunWith(AndroidJUnit4::class)
   class CollageLayoutTests {
     lateinit var activityScenario: ActivityScenario<MainActivity>
@@ -154,7 +168,7 @@ class EditorFragmentTests {
     fun should_loadPreviouslySelectedImages_when_layoutChanged() {
       changeAllImages(3, activity)
       clickRecyclerViewAtPosition(3)
-      checkAllImagesIsDefault(false)
+      checkAllImagesAreNotTheDefault()
     }
 
     @Test
@@ -168,11 +182,11 @@ class EditorFragmentTests {
     fun should_haveDefaultImages_when_resetButtonPressed() {
       changeAllImages(3, activity)
       pressOptionsMenuButton(R.id.action_reset)
-      checkAllImagesIsDefault(true)
+      checkAllImagesAreTheDefault()
     }
   }
 
-  // Done!!
+
   @RunWith(Parameterized::class)
   class ParameterizedLayoutChangeTests(
     private val inputRecyclerPosition: Int,
@@ -216,7 +230,10 @@ class EditorFragmentTests {
     }
   }
 
-  // Done!!
+
+
+  // ---------------- ASPECT RATIO TESTS ----------------
+
   @RunWith(AndroidJUnit4::class)
   class AspectRatioTests {
 
@@ -231,7 +248,7 @@ class EditorFragmentTests {
     }
   }
 
-  // Done!!
+
   @RunWith(Parameterized::class)
   class ParameterizedAspectRatioTests(
     private val inputRecyclerPosition: Int,
@@ -277,6 +294,9 @@ class EditorFragmentTests {
   }
 
 
+
+  // ---------------- BORDER TESTS ----------------
+
   @RunWith(AndroidJUnit4::class)
   class BorderTests {
 
@@ -284,58 +304,94 @@ class EditorFragmentTests {
     @JvmField
     val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
 
-    @Test
-    fun should_showBorderOptions_when_borderButtonPressed() {
-      TODO()
+    @Before
+    fun setup() {
+      pressOptionsMenuButton(R.id.button_border)
     }
 
     @Test
-    fun should_ignoreBorderButtonPress_when_alreadyShowingBorderOptions() {
-      TODO()
+    fun should_showBorderOptions_when_borderButtonPressed() {
+      checkIsDisplayed(R.id.color_picker_container)
+      checkIsNotDisplayed(R.id.tool_popup_recycler)
     }
 
     @Test
     fun should_startWithBorderSwitchOff_when_firstEnteringBorderOptions() {
-      TODO()
+      onView(withId(R.id.border_switch))
+        .check(matches(isNotChecked()))
     }
 
     @Test
     fun should_enableBorder_when_switchTurnedOnFromOffState() {
-      TODO()
+      onView(withId(R.id.border_switch))
+        .perform(setChecked(true))
+
+      checkCollageBorderEnabled(true)
     }
 
     @Test
     fun should_disableBorder_when_switchTurnedOffFromOnState() {
-      TODO()
+      setPickerColorRatio(0.5)
+
+      onView(withId(R.id.border_switch))
+        .perform(setChecked(false))
+
+      checkCollageBorderEnabled(false)
     }
 
     @Test
     fun should_enableBorderSwitch_when_newBorderColorSelected() {
-      TODO()
+      setPickerColorRatio(0.5)
+
+      onView(withId(R.id.border_switch))
+        .check(matches(isChecked()))
     }
 
     @Test
     fun should_changeBorderColor_when_newBorderColorSelected() {
-      TODO()
+      setPickerColorRatio(0.5)
+      setPickerColorRatio(0.0)
+      checkBorderColorIs(-65536)
     }
   }
 
 
+
+  // ---------------- COLLAGE VIEW TEST ----------------
+
   @RunWith(AndroidJUnit4::class)
   class CollageTests {
+    lateinit var activityScenario: ActivityScenario<MainActivity>
+    lateinit var activity: MainActivity
 
-    @Rule
-    @JvmField
-    val asr = ActivityScenarioRule<MainActivity>(MainActivity::class.java)
+    @get:Rule
+    val runtimePermissionRule: GrantPermissionRule? =
+      GrantPermissionRule.grant(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-    @Test
-    fun should_openGalleryApp_when_imageClicked() {
-      TODO()
+    @Before
+    fun setup() {
+      activityScenario = ActivityScenario.launch(MainActivity::class.java)
+
+      activityScenario.onActivity {
+        activity = it
+      }
     }
 
     @Test
-    fun should_importImageIntoCollage_when_imageSelectedFromGallery() {
-      TODO()
+    fun should_openGalleryApp_when_imageClicked() {
+      Intents.init()
+
+      clickImageAtPosition(0)
+
+      intended(hasAction(Intent.ACTION_PICK))
+
+      Intents.release()
+    }
+
+    @Test
+    fun should_importImageIntoPosition0_when_imageSelectedFromGallery() {
+      changeImageAt(0, activity)
+      checkImageAtPositionIsNotTheDefault(0)
     }
 
   }
