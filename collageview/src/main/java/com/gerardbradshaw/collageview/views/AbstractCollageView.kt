@@ -318,12 +318,16 @@ abstract class AbstractCollageView(
     touchRawY: Float,
     resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit
   ) {
-
     resizeTaskRunner.addNewTask(Runnable {
       val deltaX = event.rawX - touchRawX
       val deltaY = event.rawY - touchRawY
 
       resizeImage(touchedImageIndex, deltaX, deltaY)
+
+      val image = imageViews[touchedImageIndex]
+      if (image.currentZoom < image.minZoom) {
+        image.setZoom(image.minZoom)
+      }
 
       resizeTaskRunner.setTaskFinished()
     })
