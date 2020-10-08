@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.gerardbradshaw.collageview.R
@@ -21,20 +22,23 @@ import com.gerardbradshaw.collageview.util.TaskRunner
 import com.ortiz.touchview.TouchImageView
 import java.lang.IndexOutOfBoundsException
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
  * This class should be inherited in order to reduce code duplication in CollageView classes. Some
  * properties and functions are only used by the inheriting class. Note the inheriting class should
  * also implement [View.OnTouchListener] and call [onTouchHelper]. */
-abstract class AbstractCollageView(context: Context,
-                                   attrs: AttributeSet?,
-                                   private val imageCount: Int,
-                                   var layoutWidth: Int = 0,
-                                   var layoutHeight: Int = 0,
-                                   var isBorderEnabled: Boolean = false,
-                                   protected var imageUris: Array<Uri?>? = null) :
-  FrameLayout(context, attrs), CollageView {
+abstract class AbstractCollageView(
+  context: Context,
+  attrs: AttributeSet?,
+  private val imageCount: Int,
+  var layoutWidth: Int = 0,
+  var layoutHeight: Int = 0,
+  var isBorderEnabled: Boolean = false,
+  protected var imageUris: Array<Uri?>? = null
+) : FrameLayout(context, attrs), CollageView {
 
   // ------------------------ COLLAGE VIEW INSTANCE PROPERTIES ------------------------
 
@@ -43,11 +47,15 @@ abstract class AbstractCollageView(context: Context,
 
   /** A list of TouchImageViews in the inheriting class. */
   protected val imageViews: List<TouchImageView> = List(imageCount) {
-    TouchImageView(context, null)
+    val image = TouchImageView(context, null).also {
+      it.setBackgroundColor(Color.WHITE)
+      it.layoutParams = LayoutParams(0, 0)
+    }
+    image
   }
 
   /** The height, width, x and y positions of each image in the view. */
-  protected var imageParamsCache = Array(imageCount) {
+  protected var imageSizeAndPosCache = Array(imageCount) {
     ImageParams()
   }
 
@@ -87,75 +95,237 @@ abstract class AbstractCollageView(context: Context,
 
   private var borderColor = 0
 
+  /** Returns the number if TouchImageViews in the View. */
+  override fun imageCount() = imageCount
 
-  // ------------------------ INITIALIZATION ------------------------
+  // ------------------------ INITIALIZATION (ABSTRACT AND INSTANCE) ------------------------
 
   init {
-    initSize(layoutWidth, layoutHeight)
+    initLayoutParams(layoutWidth, layoutHeight)
+  }
+
+  private fun initLayoutParams(width: Int, height: Int) {
+    if (layoutParams == null) {
+      layoutParams = LayoutParams(width, height)
+    }
+    else {
+      layoutParams.width = width
+      layoutParams.height = height
+    }
+  }
+
+  /** Adds empty TouchImageViews to the layout. */
+  protected fun addViewsToLayout() {
+    for (image in imageViews) {
+      addView(image)
+    }
+  }
+
+  /** Adds images from [imageUris] to the TouchImageViews in the layout. */
+  protected fun addImagesToViews() {
+    for (i in 0 until imageCount) {
+      setImageAt(i, imageUris?.get(i))
+    }
   }
 
 
-  // ------------------------ PUBLIC INSTANCE METHODS ------------------------
 
-  /** Returns the number if TouchImageViews in the View. */
-  override fun imageCount() = imageCount
+  // ------------------------  IMAGES ------------------------
 
   /** Sets the image at child [index] to the image at [uri]. If Uri is invalid, the default image is
    loaded. */
   override fun setImageAt(index: Int, uri: Uri?) {
-    if (index < imageViews.size) {
-      if (uri != null) {
-        imageViews[index].apply {
-          this.scaleType = ImageView.ScaleType.CENTER
-          this.isZoomEnabled = true
-
-          Glide.with(context)
-            .load(uri)
-            .transition(DrawableTransitionOptions.withCrossFade())
-            .into(this)
-
-          this.setTag(R.id.image_source, uri.toString())
-        }
-      }
-      else {
-        imageViews[index].apply {
-          this.scaleType = ImageView.ScaleType.CENTER_INSIDE
-          this.isZoomEnabled = false
-          this.setBackgroundColor(Color.WHITE)
-
-          Glide.with(context)
-            .load(R.drawable.img_tap_to_add_photo)
-            .transition(DrawableTransitionOptions.withCrossFade())
-            .into(this)
-
-          this.setTag(R.id.image_source, context.getString(R.string.default_image_tag))
-        }
-      }
+    when {
+      index >= imageViews.size -> Log.d(TAG, "setImageAt: invalid index")
+      uri == null -> loadDefaultImageInView(index)
+      else -> loadImageInView(index, uri)
     }
-    else Log.d(TAG, "setImageAt: invalid index")
   }
+
+  private fun loadDefaultImageInView(index: Int) {
+    imageViews[index].apply {
+      this.scaleType = ImageView.ScaleType.CENTER_INSIDE
+      this.setZoom(1f)
+      this.isZoomEnabled = false
+
+      Glide.with(context)
+        .load(R.drawable.img_tap_to_add_photo)
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .into(this)
+
+      this.setTag(R.id.image_source, context.getString(R.string.default_image_tag))
+    }
+  }
+
+  private fun loadImageInView(index: Int, uri: Uri) {
+    imageViews[index].apply {
+      this.scaleType = ImageView.ScaleType.CENTER
+      this.isZoomEnabled = true
+
+      Glide.with(context)
+        .load(uri)
+        .transition(DrawableTransitionOptions.withCrossFade())
+        .into(this)
+
+      this.setTag(R.id.image_source, uri.toString())
+    }
+  }
+
+
+
+  /** Sets the listener to be notified of image clicks. The View given in the OnClick() interface
+  is the TouchImageView clicked and not this (parent) CollageView. */
+  fun setImageClickListener(listener: OnClickListener) {
+    clickListener = listener
+    for (image in imageViews) image.setOnClickListener(listener)
+  }
+
+  fun getSetImageCount(): Int {
+    var count = 0
+
+    for (view in imageViews) {
+      if (view.getTag(R.id.image_source) != context.getString(R.string.default_image_tag)) count++
+    }
+
+    return count
+  }
+
+  fun isSetImageAt(position: Int): Boolean {
+    if (position < imageCount) {
+      return imageViews[position].getTag(R.id.image_source) != context.getString(R.string.default_image_tag)
+    }
+    else throw IndexOutOfBoundsException("position index too large")
+  }
+
+
+
+  // ------------------------  ASPECT RATIO ------------------------
 
   /** The last aspect ratio set (null if no specific ratio has been set).  */
   var aspectRatio: Float? = null
-  set(value) {
-    field = value
+    set(value) {
+      when {
+        !isLayoutInflated -> {
+          Log.d(TAG, "setAspectRatio: Error - collage not inflated.")
+          return
+        }
 
-    if (value == null) {
-      resize(initialLayoutWidth, initialLayoutHeight)
-      return
+        value == null -> {
+          resizeLayout(initialLayoutWidth, initialLayoutHeight)
+        }
+
+        else -> {
+          val shouldAdjustHeight = initialLayoutHeight > initialLayoutWidth / value
+
+          if (shouldAdjustHeight) {
+            resizeLayout(initialLayoutWidth, (initialLayoutWidth.toFloat() / value).toInt())
+          } else {
+            resizeLayout((initialLayoutHeight.toFloat() * value).toInt(), initialLayoutHeight)
+          }
+        }
+      }
+      field = value
     }
 
-    if (!isLayoutInflated) {
-      Log.d(TAG, "setAspectRatio: could not set ratio because the collage layout was not inflated.")
-      return
-    }
+  private fun resizeLayout(newWidth: Int, newHeight: Int) {
+    initLayoutParams(newWidth, newHeight)
 
-    val shouldAdjustHeight = initialLayoutHeight > initialLayoutWidth / value
+    val currentXScale = layoutWidth.toFloat() / initialLayoutWidth.toFloat()
+    val newXScale = newWidth / initialLayoutWidth.toFloat()
 
-    if (shouldAdjustHeight) resize(initialLayoutWidth, (initialLayoutWidth.toFloat() / value).toInt())
-    else resize((initialLayoutHeight.toFloat() * value).toInt(), initialLayoutHeight)
+    val currentYScale = layoutHeight.toFloat() / initialLayoutHeight.toFloat()
+    val newYScale = newHeight / initialLayoutHeight.toFloat()
 
+    layoutWidth = newWidth
+    layoutHeight = newHeight
+
+    scaleImageViews(newXScale / currentXScale, newYScale / currentYScale)
   }
+
+  private fun scaleImageViews(xScale: Float, yScale: Float) {
+    for (params in imageSizeAndPosCache) {
+      params.width *= xScale
+      params.height *= yScale
+      params.x *= xScale
+      params.y *= yScale
+    }
+    syncViewsWithSizeAndPosCache()
+  }
+
+  protected fun syncViewsWithSizeAndPosCache() {
+    for (i in imageViews.indices) {
+      if (!imageSizeAndPosCache[i].synced) {
+        syncViewSizeWithCacheAt(i)
+        syncViewPositionWithCacheAt(i)
+        imageSizeAndPosCache[i].synced = true
+      }
+    }
+  }
+
+  private fun syncViewSizeWithCacheAt(index: Int) {
+    if (index < 0 || index >= imageCount) return
+
+    val image = getChildAt(index) as TouchImageView
+    val newDimens = imageSizeAndPosCache[index]
+
+    if (image.layoutParams != null) {
+      image.updateLayoutParams {
+        if (newDimens.width != 0f) this.width = newDimens.width.roundToInt()
+        if (newDimens.height != 0f) this.height = newDimens.height.roundToInt()
+      }
+    }
+
+    image.minZoom = getMinZoom(index)
+  }
+
+  private fun getMinZoom(position: Int): Float {
+    val drawable = imageViews[position].drawable
+
+    if (drawable != null) {
+      val drawableWidth = drawable.intrinsicWidth
+      val drawableHeight = drawable.intrinsicHeight
+
+      if (drawableWidth > 0 && drawableHeight > 0) {
+        val sizeAndPos = imageSizeAndPosCache[position]
+
+        val widthRatio = sizeAndPos.width / drawableWidth
+        val heightRatio = sizeAndPos.height / drawableHeight
+        return max(widthRatio, heightRatio)
+      }
+    }
+
+    return 1f
+  }
+
+  private fun syncViewPositionWithCacheAt(index: Int) {
+    if (index < 0 || index >= imageCount) return
+
+    val image = imageViews[index]
+
+    image.x = imageSizeAndPosCache[index].x.roundToInt().toFloat()
+    image.y = imageSizeAndPosCache[index].y.roundToInt().toFloat()
+  }
+
+  private fun addResizeRunnableToQueueAndRun(
+    event: MotionEvent,
+    touchRawX: Float,
+    touchRawY: Float,
+    resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit
+  ) {
+
+    resizeTaskRunner.addNewTask(Runnable {
+      val deltaX = event.rawX - touchRawX
+      val deltaY = event.rawY - touchRawY
+
+      resizeImage(touchedImageIndex, deltaX, deltaY)
+
+      resizeTaskRunner.setTaskFinished()
+    })
+  }
+
+
+
+  // ------------------------  BORDER ------------------------
 
   /** Enables the border if [enableBorder] is true, otherwise the border is disabled. */
   @SuppressLint("NewApi") // bug
@@ -164,18 +334,24 @@ abstract class AbstractCollageView(context: Context,
 
     if (isBorderEnabled) {
       val frameBorder = ContextCompat.getDrawable(context, R.drawable.border_frame)
-      val frameBorderThickness = TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP,
-        resources.getDimension(R.dimen.collage_layout_border_thickness),
-        resources.displayMetrics).roundToInt()
+      val frameBorderThickness =
+        TypedValue.applyDimension(
+          TypedValue.COMPLEX_UNIT_DIP,
+          resources.getDimension(R.dimen.collage_layout_border_thickness),
+          resources.displayMetrics
+        ).roundToInt()
 
-      (frameBorder?.mutate() as GradientDrawable).setStroke(2 * frameBorderThickness, borderColor)
+      (frameBorder?.mutate() as GradientDrawable)
+        .setStroke(2 * frameBorderThickness, borderColor)
+
       foreground = frameBorder
 
       for (image in imageViews) {
         val imageBorder = ContextCompat.getDrawable(context, R.drawable.border_image)
 
-        (imageBorder?.mutate() as GradientDrawable).setStroke(frameBorderThickness, borderColor)
+        (imageBorder?.mutate() as GradientDrawable)
+          .setStroke(frameBorderThickness, borderColor)
+
         image.foreground = imageBorder
         image.setTag(R.id.border_color, borderColor)
       }
@@ -208,12 +384,9 @@ abstract class AbstractCollageView(context: Context,
     return if (isLayoutInflated && isBorderEnabled) borderColor else null
   }
 
-  /** Sets the listener to be notified of image clicks. The View given in the OnClick() interface
-   is the TouchImageView clicked and not this (parent) CollageView. */
-  fun setImageClickListener(listener: OnClickListener) {
-    clickListener = listener
-    for (image in imageViews) image.setOnClickListener(listener)
-  }
+
+
+  // ------------------------  UTIL ------------------------
 
   fun reset() {
     for (i in 0 until imageCount) {
@@ -223,51 +396,6 @@ abstract class AbstractCollageView(context: Context,
     aspectRatio = initialLayoutWidth.toFloat() / initialLayoutHeight.toFloat()
     enableBorder(false)
     initImageLayout()
-  }
-
-  fun getSetImageCount(): Int {
-    var count = 0
-
-    for (view in imageViews) {
-      if (view.getTag(R.id.image_source) != context.getString(R.string.default_image_tag)) count++
-    }
-
-    return count
-  }
-
-  fun isSetImageAt(position: Int): Boolean {
-    if (position < imageCount) {
-      return imageViews[position].getTag(R.id.image_source) != context.getString(R.string.default_image_tag)
-    }
-    else throw IndexOutOfBoundsException("position index too large")
-  }
-
-
-
-  // ------------------------ COLLAGE VIEW INSTANCE METHODS ------------------------
-
-  protected fun syncLayoutWithParamCache() {
-    for (i in imageViews.indices) {
-      if (!imageParamsCache[i].synced) {
-        syncImageSizeWithCacheAt(i)
-        syncImageCoordinatesWithCacheAt(i)
-        imageParamsCache[i].synced = true
-      }
-    }
-  }
-
-  /** Adds empty TouchImageViews to the layout. */
-  protected fun addViewsToLayout() {
-    for (image in imageViews) {
-      addView(image)
-    }
-  }
-
-  /** Adds images from [imageUris] to the TouchImageViews in the layout. */
-  protected fun addImagesToViews() {
-    for (i in 0 until imageCount) {
-      setImageAt(i, imageUris?.get(i))
-    }
   }
 
   /** Helper for the inheriting class' onTouch() method. This reduced the need to duplicate the
@@ -324,69 +452,6 @@ abstract class AbstractCollageView(context: Context,
     }
   }
 
-
-  // ------------------------ ABSTRACT COLLAGE VIEW METHODS ------------------------
-
-  private fun initSize(width: Int, height: Int) {
-    if (layoutParams == null) {
-      layoutParams = LayoutParams(width, height)
-    }
-    else {
-      layoutParams.width = width
-      layoutParams.height = height
-    }
-  }
-
-  private fun resize(newWidth: Int, newHeight: Int) {
-    if (layoutParams == null) {
-      layoutParams = LayoutParams(newWidth, newHeight)
-    }
-    else {
-      layoutParams.width = newWidth
-      layoutParams.height = newHeight
-    }
-
-    val currentXScale = layoutWidth.toFloat() / initialLayoutWidth.toFloat()
-    val newXScale = newWidth / initialLayoutWidth.toFloat()
-
-    val currentYScale = layoutHeight.toFloat() / initialLayoutHeight.toFloat()
-    val newYScale = newHeight / initialLayoutHeight.toFloat()
-
-    layoutWidth = newWidth
-    layoutHeight = newHeight
-
-    scaleViews(newXScale / currentXScale, newYScale / currentYScale)
-  }
-
-  private fun syncImageSizeWithCacheAt(index: Int) {
-    if (index < 0 || index >= imageCount) return
-
-    val image = imageViews[index]
-
-    val params = image.layoutParams ?: LayoutParams(
-      imageParamsCache[index].width.roundToInt(), imageParamsCache[index].height.roundToInt())
-
-    if (imageParamsCache[index].width != 0f) {
-      params.width = imageParamsCache[index].width.roundToInt()
-    }
-
-    if (imageParamsCache[index].height != 0f) {
-      params.height = imageParamsCache[index].height.roundToInt()
-    }
-
-    image.layoutParams = params
-    image.requestLayout()
-  }
-
-  private fun syncImageCoordinatesWithCacheAt(index: Int) {
-    if (index < 0 || index >= imageCount) return
-
-    val image = imageViews[index]
-
-    image.x = imageParamsCache[index].x.roundToInt().toFloat()
-    image.y = imageParamsCache[index].y.roundToInt().toFloat()
-  }
-
   /** Returns an [Edge] representing the edge or corner at the coordinates (touchX, touchY) in the
    image at index touchedImageIndex in [imageViews]. */
   private fun getTouchedImageEdge(touchX: Float, touchY: Float): Edge? {
@@ -395,8 +460,8 @@ abstract class AbstractCollageView(context: Context,
       return null
     }
 
-    val percentageAcrossImage = touchX / imageParamsCache[touchedImageIndex].width
-    val percentageDownImage = touchY / imageParamsCache[touchedImageIndex].height
+    val percentageAcrossImage = touchX / imageSizeAndPosCache[touchedImageIndex].width
+    val percentageDownImage = touchY / imageSizeAndPosCache[touchedImageIndex].height
     
     return when {
       percentageAcrossImage < 0.25 -> {
@@ -453,34 +518,8 @@ abstract class AbstractCollageView(context: Context,
     touchedImageIndex = -1
   }
 
-  private fun scaleViews(xScale: Float, yScale: Float) {
-    for (i in imageParamsCache.indices) {
-      imageParamsCache[i].width *= xScale
-      imageParamsCache[i].height *= yScale
-      imageParamsCache[i].x *= xScale
-      imageParamsCache[i].y *= yScale
-    }
-    syncLayoutWithParamCache()
-  }
-
   protected abstract fun initImageLayout()
 
-  private fun addResizeRunnableToQueueAndRun(
-    event: MotionEvent,
-    touchRawX: Float,
-    touchRawY: Float,
-    resizeImage: (index: Int, deltaX: Float, deltaY: Float) -> Unit
-  ) {
-
-    resizeTaskRunner.addNewTask(Runnable {
-      val deltaX = event.rawX - touchRawX
-      val deltaY = event.rawY - touchRawY
-
-      resizeImage(touchedImageIndex, deltaX, deltaY)
-
-      resizeTaskRunner.setTaskFinished()
-    })
-  }
 
 
   // ------------------------ HELPERS ------------------------
