@@ -9,13 +9,22 @@ import android.view.View
 import android.view.ViewTreeObserver
 import com.gerardbradshaw.collageview.util.ImageParams
 
-class CollageViewVertical(context: Context, attrs: AttributeSet?, imageCount: Int,
-                          totalWidth: Int, totalHeight: Int,
-                          isBorderEnabled: Boolean = false,
-                          imageUris: Array<Uri?>? = null) :
-  AbstractCollageView(context, attrs, imageCount,
-    totalWidth, totalHeight, isBorderEnabled, imageUris),
-  View.OnTouchListener {
+class CollageViewVertical(
+  context: Context,
+  attrs: AttributeSet?, imageCount: Int,
+  totalWidth: Int,
+  totalHeight: Int,
+  isBorderEnabled: Boolean = false,
+  imageUris: Array<Uri?>? = null
+) : AbstractCollageView(
+  context,
+  attrs,
+  imageCount,
+  totalWidth,
+  totalHeight,
+  isBorderEnabled,
+  imageUris
+), View.OnTouchListener {
 
   // ------------------------ INITIALIZATION ------------------------
 
@@ -41,10 +50,10 @@ class CollageViewVertical(context: Context, attrs: AttributeSet?, imageCount: In
     val height = layoutHeight.toFloat() / imageCount().toFloat()
 
     for (i in imageViews.indices) {
-      imageParamsCache[i] = ImageParams(layoutWidth.toFloat(), height, 0f, i * height)
+      imageSizeAndPosCache[i] = ImageParams(layoutWidth.toFloat(), height, 0f, i * height)
     }
 
-    syncLayoutWithParamCache()
+    syncViewsWithSizeAndPosCache()
   }
 
   // Do not change
@@ -64,34 +73,34 @@ class CollageViewVertical(context: Context, attrs: AttributeSet?, imageCount: In
       Edge.BOTTOM_LEFT_CORNER, Edge.BOTTOM_SIDE, Edge.BOTTOM_RIGHT_CORNER -> {
         if (index == imageViews.size - 1) return
 
-        val okToAdjustHeight = imageParamsCache[index].height + deltaHeight > minDimension &&
-            imageParamsCache[index + 1].height - deltaHeight > minDimension
+        val okToAdjustHeight = imageSizeAndPosCache[index].height + deltaHeight > minDimension &&
+            imageSizeAndPosCache[index + 1].height - deltaHeight > minDimension
 
         if (!okToAdjustHeight) Log.d(TAG, "resizeImageAt: unsafe to resize")
         else {
-          imageParamsCache[index].height += deltaHeight
+          imageSizeAndPosCache[index].height += deltaHeight
 
-          imageParamsCache[index + 1].height -= deltaHeight
-          imageParamsCache[index + 1].y += deltaHeight
+          imageSizeAndPosCache[index + 1].height -= deltaHeight
+          imageSizeAndPosCache[index + 1].y += deltaHeight
 
-          syncLayoutWithParamCache()
+          syncViewsWithSizeAndPosCache()
         }
       }
 
       Edge.TOP_LEFT_CORNER, Edge.TOP_SIDE, Edge.TOP_RIGHT_CORNER -> {
         if (index == 0) return
 
-        val okToAdjustHeight = imageParamsCache[index].height - deltaHeight > minDimension &&
-            imageParamsCache[index - 1].height + deltaHeight > minDimension
+        val okToAdjustHeight = imageSizeAndPosCache[index].height - deltaHeight > minDimension &&
+            imageSizeAndPosCache[index - 1].height + deltaHeight > minDimension
 
         if (!okToAdjustHeight) Log.d(TAG, "resizeImageAt: unsafe to resize")
         else {
-          imageParamsCache[index].height -= deltaHeight
-          imageParamsCache[index].y += deltaHeight
+          imageSizeAndPosCache[index].height -= deltaHeight
+          imageSizeAndPosCache[index].y += deltaHeight
 
-          imageParamsCache[index - 1].height += deltaHeight
+          imageSizeAndPosCache[index - 1].height += deltaHeight
 
-          syncLayoutWithParamCache()
+          syncViewsWithSizeAndPosCache()
         }
       }
 

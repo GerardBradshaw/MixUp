@@ -252,7 +252,10 @@ class ImageUtil constructor(
     }
   }
 
-  private fun isStoragePermissionGranted(activity: Activity, listener: ImageSavedListener): Boolean {
+  private fun isStoragePermissionGranted(
+    activity: Activity,
+    listener: ImageSavedListener
+  ): Boolean {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
       val requiredPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
 

@@ -39,25 +39,25 @@ class CollageView3Image2(context: Context, attrs: AttributeSet?,
   }
 
   override fun initImageLayout() {
-    imageParamsCache[0] = ImageParams(
+    imageSizeAndPosCache[0] = ImageParams(
       width = layoutWidth / 2f,
       height = layoutHeight / 2f,
       x = 0f,
       y = 0f)
 
-    imageParamsCache[1] = ImageParams(
+    imageSizeAndPosCache[1] = ImageParams(
       width = layoutWidth / 2f,
       height = layoutHeight.toFloat(),
       x = layoutWidth / 2f,
       y = 0f)
 
-    imageParamsCache[2] = ImageParams(
+    imageSizeAndPosCache[2] = ImageParams(
       width = layoutWidth / 2f,
       height = layoutHeight / 2f,
       x = 0f,
       y = layoutHeight / 2f)
 
-    syncLayoutWithParamCache()
+    syncViewsWithSizeAndPosCache()
   }
 
   // Do not change
@@ -81,38 +81,38 @@ class CollageView3Image2(context: Context, attrs: AttributeSet?,
   }
 
   private fun resizeImage0(deltaWidth: Float, deltaHeight: Float) {
-    val okToAdjustWidth = imageParamsCache[0].width + deltaWidth in minDimension..(layoutWidth - minDimension)
-    val okToAdjustHeight = imageParamsCache[0].height + deltaHeight in minDimension..(layoutHeight - minDimension)
+    val okToAdjustWidth = imageSizeAndPosCache[0].width + deltaWidth in minDimension..(layoutWidth - minDimension)
+    val okToAdjustHeight = imageSizeAndPosCache[0].height + deltaHeight in minDimension..(layoutHeight - minDimension)
 
     when (touchedImageEdge) {
       null -> {
         Log.d(TAG, "resizeImage0: invalid edge")
       }
       Edge.TOP_RIGHT_CORNER, Edge.RIGHT_SIDE -> {
-        if (okToAdjustWidth) imageParamsCache[0].width += deltaWidth
+        if (okToAdjustWidth) imageSizeAndPosCache[0].width += deltaWidth
       }
       Edge.BOTTOM_LEFT_CORNER, Edge.BOTTOM_SIDE -> {
-        if (okToAdjustHeight) imageParamsCache[0].height += deltaHeight
+        if (okToAdjustHeight) imageSizeAndPosCache[0].height += deltaHeight
       }
       Edge.BOTTOM_RIGHT_CORNER -> {
-        if (okToAdjustWidth) imageParamsCache[0].width += deltaWidth
-        if (okToAdjustHeight) imageParamsCache[0].height += deltaHeight
+        if (okToAdjustWidth) imageSizeAndPosCache[0].width += deltaWidth
+        if (okToAdjustHeight) imageSizeAndPosCache[0].height += deltaHeight
       }
       else -> return
     }
 
-    imageParamsCache[1].width = layoutWidth - imageParamsCache[0].width
-    imageParamsCache[1].x = imageParamsCache[0].width
+    imageSizeAndPosCache[1].width = layoutWidth - imageSizeAndPosCache[0].width
+    imageSizeAndPosCache[1].x = imageSizeAndPosCache[0].width
 
-    imageParamsCache[2].width = imageParamsCache[0].width
-    imageParamsCache[2].height = layoutHeight - imageParamsCache[0].height
-    imageParamsCache[2].y = imageParamsCache[0].height
+    imageSizeAndPosCache[2].width = imageSizeAndPosCache[0].width
+    imageSizeAndPosCache[2].height = layoutHeight - imageSizeAndPosCache[0].height
+    imageSizeAndPosCache[2].y = imageSizeAndPosCache[0].height
 
-    syncLayoutWithParamCache()
+    syncViewsWithSizeAndPosCache()
   }
 
   private fun resizeImage1(deltaWidth: Float) {
-    val okToAdjustWidth = imageParamsCache[1].width - deltaWidth in minDimension..(layoutWidth - minDimension)
+    val okToAdjustWidth = imageSizeAndPosCache[1].width - deltaWidth in minDimension..(layoutWidth - minDimension)
 
     when (touchedImageEdge) {
       null -> {
@@ -120,22 +120,22 @@ class CollageView3Image2(context: Context, attrs: AttributeSet?,
         return
       }
       Edge.TOP_LEFT_CORNER, Edge.BOTTOM_LEFT_CORNER, Edge.LEFT_SIDE -> {
-        if (okToAdjustWidth) imageParamsCache[1].width -= deltaWidth
+        if (okToAdjustWidth) imageSizeAndPosCache[1].width -= deltaWidth
       }
       else -> return
     }
 
-    imageParamsCache[1].x = layoutWidth - imageParamsCache[1].width
+    imageSizeAndPosCache[1].x = layoutWidth - imageSizeAndPosCache[1].width
 
-    imageParamsCache[0].width = layoutWidth - imageParamsCache[1].width
-    imageParamsCache[2].width = layoutWidth - imageParamsCache[1].width
+    imageSizeAndPosCache[0].width = layoutWidth - imageSizeAndPosCache[1].width
+    imageSizeAndPosCache[2].width = layoutWidth - imageSizeAndPosCache[1].width
 
-    syncLayoutWithParamCache()
+    syncViewsWithSizeAndPosCache()
   }
 
   private fun resizeImage2(deltaWidth: Float, deltaHeight: Float) {
-    val okToAdjustWidth = imageParamsCache[2].width + deltaWidth in minDimension..(layoutWidth - minDimension)
-    val okToAdjustHeight = imageParamsCache[2].height - deltaHeight in minDimension..(layoutHeight - minDimension)
+    val okToAdjustWidth = imageSizeAndPosCache[2].width + deltaWidth in minDimension..(layoutWidth - minDimension)
+    val okToAdjustHeight = imageSizeAndPosCache[2].height - deltaHeight in minDimension..(layoutHeight - minDimension)
 
     when (touchedImageEdge) {
       null -> {
@@ -143,27 +143,27 @@ class CollageView3Image2(context: Context, attrs: AttributeSet?,
         return
       }
       Edge.TOP_SIDE, Edge.TOP_LEFT_CORNER -> {
-        if (okToAdjustHeight) imageParamsCache[2].height -= deltaHeight
+        if (okToAdjustHeight) imageSizeAndPosCache[2].height -= deltaHeight
       }
       Edge.RIGHT_SIDE, Edge.BOTTOM_RIGHT_CORNER -> {
-        if (okToAdjustWidth) imageParamsCache[2].width += deltaWidth
+        if (okToAdjustWidth) imageSizeAndPosCache[2].width += deltaWidth
       }
       Edge.TOP_RIGHT_CORNER -> {
-        if (okToAdjustWidth) imageParamsCache[2].width += deltaWidth
-        if (okToAdjustHeight) imageParamsCache[2].height -= deltaHeight
+        if (okToAdjustWidth) imageSizeAndPosCache[2].width += deltaWidth
+        if (okToAdjustHeight) imageSizeAndPosCache[2].height -= deltaHeight
       }
       else -> return
     }
 
-    imageParamsCache[2].y = layoutHeight - imageParamsCache[2].height
+    imageSizeAndPosCache[2].y = layoutHeight - imageSizeAndPosCache[2].height
 
-    imageParamsCache[0].width = imageParamsCache[2].width
-    imageParamsCache[0].height = layoutHeight - imageParamsCache[2].height
+    imageSizeAndPosCache[0].width = imageSizeAndPosCache[2].width
+    imageSizeAndPosCache[0].height = layoutHeight - imageSizeAndPosCache[2].height
 
-    imageParamsCache[1].width = layoutWidth - imageParamsCache[2].width
-    imageParamsCache[1].x = imageParamsCache[2].width
+    imageSizeAndPosCache[1].width = layoutWidth - imageSizeAndPosCache[2].width
+    imageSizeAndPosCache[1].x = imageSizeAndPosCache[2].width
 
-    syncLayoutWithParamCache()
+    syncViewsWithSizeAndPosCache()
   }
 
 
