@@ -9,13 +9,21 @@ import android.view.View
 import android.view.ViewTreeObserver
 import com.gerardbradshaw.collageview.util.ImageParams
 
-class CollageView3Image2(context: Context, attrs: AttributeSet?,
-                         totalWidth: Int, totalHeight: Int,
-                         isBorderEnabled: Boolean = false,
-                         imageUris: Array<Uri?>? = null) :
-  AbstractCollageView(context, attrs, 3,
-    totalWidth, totalHeight, isBorderEnabled, imageUris),
-  View.OnTouchListener {
+class CollageView3Image2(
+  context: Context,
+  attrs: AttributeSet?,
+  totalWidth: Int, totalHeight: Int,
+  isBorderEnabled: Boolean = false,
+  imageUris: Array<Uri?>? = null
+) : AbstractCollageView(
+  context,
+  attrs,
+  3,
+  totalWidth,
+  totalHeight,
+  isBorderEnabled,
+  imageUris
+), View.OnTouchListener {
 
 
   // ------------------------ INITIALIZATION ------------------------

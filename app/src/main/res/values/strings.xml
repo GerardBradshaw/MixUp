@@ -5,7 +5,7 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">MixUp</string>
-    <string name="nav_header_subtitle">v1.1.0</string>
+    <string name="app_version_number">v2.0.0</string>
     <string name="nav_header_desc">Navigation header app logo</string>
     <string name="menu_editor">MixUp</string>
     <string name="menu_gallery">Gallery</string>

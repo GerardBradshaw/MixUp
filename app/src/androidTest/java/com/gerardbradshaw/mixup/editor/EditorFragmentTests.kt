@@ -203,7 +203,7 @@ class EditorFragmentTests {
     }
 
     companion object {
-      @Parameterized.Parameters(name = "layout = {0}")
+      @Parameterized.Parameters(name = "layout position in recycler = {0}")
       @JvmStatic
       fun params(): Collection<Array<Any>> {
         val expectedOutputs = arrayOf<Any>(
@@ -266,7 +266,7 @@ class EditorFragmentTests {
     }
 
     companion object {
-      @Parameterized.Parameters(name = "ratio = {0}")
+      @Parameterized.Parameters(name = "aspect ratio recycler position = {0}")
       @JvmStatic
       fun params(): Collection<Array<Any>> {
         val expectedOutputs = arrayOf<Any>(

@@ -177,8 +177,6 @@ abstract class AbstractCollageView(
     }
   }
 
-
-
   /** Sets the listener to be notified of image clicks. The View given in the OnClick() interface
   is the TouchImageView clicked and not this (parent) CollageView. */
   fun setImageClickListener(listener: OnClickListener) {
@@ -282,6 +280,7 @@ abstract class AbstractCollageView(
     }
 
     image.minZoom = getMinZoom(index)
+    fitImageInView(index)
   }
 
   private fun getMinZoom(position: Int): Float {
@@ -301,6 +300,15 @@ abstract class AbstractCollageView(
     }
 
     return 1f
+  }
+
+  private fun fitImageInView(index: Int) {
+    val image = imageViews[index]
+    if (image.currentZoom < image.minZoom &&
+      image.getTag(R.id.image_source) != context.getString(R.string.default_image_tag)
+    ) {
+      image.setZoom(image.minZoom)
+    }
   }
 
   private fun syncViewPositionWithCacheAt(index: Int) {
@@ -324,10 +332,7 @@ abstract class AbstractCollageView(
 
       resizeImage(touchedImageIndex, deltaX, deltaY)
 
-      val image = imageViews[touchedImageIndex]
-      if (image.currentZoom < image.minZoom) {
-        image.setZoom(image.minZoom)
-      }
+      fitImageInView(touchedImageIndex)
 
       resizeTaskRunner.setTaskFinished()
     })
