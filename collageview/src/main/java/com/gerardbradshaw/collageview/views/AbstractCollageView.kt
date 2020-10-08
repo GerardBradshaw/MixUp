@@ -144,30 +144,36 @@ abstract class AbstractCollageView(
 
   private fun loadDefaultImageInView(index: Int) {
     imageViews[index].apply {
-      this.scaleType = ImageView.ScaleType.CENTER_INSIDE
-      this.setZoom(1f)
-      this.isZoomEnabled = false
+      scaleType = ImageView.ScaleType.CENTER_INSIDE
+
 
       Glide.with(context)
         .load(R.drawable.img_tap_to_add_photo)
         .transition(DrawableTransitionOptions.withCrossFade())
         .into(this)
 
-      this.setTag(R.id.image_source, context.getString(R.string.default_image_tag))
+      isZoomEnabled = false
+      minZoom = 1f
+      setZoom(this.minZoom)
+
+      setTag(R.id.image_source, context.getString(R.string.default_image_tag))
     }
   }
 
   private fun loadImageInView(index: Int, uri: Uri) {
     imageViews[index].apply {
-      this.scaleType = ImageView.ScaleType.CENTER
-      this.isZoomEnabled = true
+      scaleType = ImageView.ScaleType.CENTER
 
       Glide.with(context)
         .load(uri)
         .transition(DrawableTransitionOptions.withCrossFade())
         .into(this)
 
-      this.setTag(R.id.image_source, uri.toString())
+      isZoomEnabled = true
+      minZoom = getMinZoom(index)
+      setZoom(minZoom)
+
+      setTag(R.id.image_source, uri.toString())
     }
   }
 
