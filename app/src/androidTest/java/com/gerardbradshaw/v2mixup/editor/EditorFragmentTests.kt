@@ -63,7 +63,7 @@ class EditorFragmentTests {
     @Test
     fun should_useAppContext_when_launched() {
       val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-      assertEquals("com.gerardbradshaw.mixup", appContext.packageName)
+      assertEquals("com.gerardbradshaw.v2mixup", appContext.packageName)
     }
 
     @Test
