@@ -64,7 +64,10 @@ class CollageViewVertical(
 
   // ------------------------ RESIZING HELPERS ------------------------
 
-  private fun resizeImageAt(index: Int, deltaWidth: Float, deltaHeight: Float) {
+  private fun resizeImageAt(
+    index: Int,
+    @Suppress("UNUSED_PARAMETER") deltaWidth: Float,
+    deltaHeight: Float) {
     when (touchedImageEdge) {
       null -> {
         Log.d(TAG, "resizeImageAt: invalid edge")

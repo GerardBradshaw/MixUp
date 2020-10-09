@@ -8,13 +8,13 @@
 
     <fragment
         android:id="@+id/nav_editor"
-        android:name="com.gerardbradshaw.mixup.ui.editor.EditorFragment"
+        android:name="com.gerardbradshaw.v2mixup.ui.editor.EditorFragment"
         android:label="@string/menu_editor"
         tools:layout="@layout/fragment_editor" />
 
     <fragment
         android:id="@+id/nav_more_apps"
-        android:name="com.gerardbradshaw.mixup.ui.moreapps.MoreAppsFragment"
+        android:name="com.gerardbradshaw.v2mixup.ui.moreapps.MoreAppsFragment"
         android:label="@string/menu_more_apps"
         tools:layout="@layout/fragment_more_apps" />
 </navigation>
