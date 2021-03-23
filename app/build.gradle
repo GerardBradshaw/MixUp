@@ -73,7 +73,7 @@ dependencies {
     annotationProcessor "com.github.bumptech.glide:compiler:$rootProject.glide_version"
 
     // JUnit
-    testImplementation "junit:junit:$rootProject.junit_version"
+//    testImplementation "junit:junit:$rootProject.junit_version"
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
 
     // MVVM

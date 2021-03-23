@@ -24,18 +24,18 @@ class BaseApplication : Application() {
         .build()
   }
 
-  fun getAppComponent(): AppComponent {
-    return component
-  }
-
   fun replaceDispatchersForTests() {
     component =
       DaggerAppComponent
         .builder()
         .setMainDispatcher(Main)
         .setDefaultDispatcher(Main)
-       .setIoDispatcher(Main)
-       .setApplication(this)
+        .setIoDispatcher(Main)
+        .setApplication(this)
         .build()
+  }
+
+  fun getAppComponent(): AppComponent {
+    return component
   }
 }
